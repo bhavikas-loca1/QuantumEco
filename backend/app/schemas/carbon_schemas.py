@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, validator
 from typing import List, Optional, Dict, Any, Union
 from datetime import datetime, date
+from datetime import date as DateType
 from enum import Enum
 
 class EmissionUnit(str, Enum):
@@ -187,8 +188,7 @@ class PerformanceMetrics(BaseModel):
     carbon_intensity: float = Field(..., ge=0, description="Carbon intensity (kg CO2 per delivery)")
 
 class DailyCarbonReport(BaseModel):
-    """Comprehensive daily environmental impact analysis"""
-    date: date = Field(..., description="Report date")
+    date: DateType = Field(..., description="Report date")
     total_emissions_kg: float = Field(..., ge=0, description="Total daily emissions")
     total_savings_kg: float = Field(..., ge=0, description="Total daily carbon savings")
     deliveries_count: int = Field(..., ge=0, description="Number of deliveries")
