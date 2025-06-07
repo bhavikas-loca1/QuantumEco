@@ -476,6 +476,26 @@ def get_all_vehicle_profiles() -> list:
         return profiles
     finally:
         db.close()
+        
+# Add this function to the existing database.py file
+
+from sqlalchemy.orm import Session
+from typing import Generator
+
+def get_db() -> Generator[Session, None, None]:
+    """
+    Dependency function to get database session
+    Used with FastAPI Depends() for automatic session management
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    except Exception as e:
+        db.rollback()
+        raise e
+    finally:
+        db.close()
+
 
 def cleanup_old_records(days: int = 30):
     """Clean up old records older than specified days"""
@@ -534,3 +554,8 @@ __all__ = [
     "get_vehicle_profile_by_type",
     "get_all_vehicle_profiles"
 ]
+
+"""# After adding models, create and run migration:
+alembic revision --autogenerate -m "Add certificate, delivery, route, vehicle models"
+alembic upgrade head
+"""
