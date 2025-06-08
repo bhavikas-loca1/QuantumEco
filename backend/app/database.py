@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, JSON, Text, Index
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, ForeignKey, JSON, Text, Index, text
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker, Session
 from sqlalchemy.sql import func
 from sqlalchemy.pool import StaticPool
@@ -425,7 +425,7 @@ def check_database_health() -> dict:
         db = get_db_session()
         
         # Test basic connectivity
-        db.execute("SELECT 1")
+        db.execute(text('SELECT 1'))
         
         # Get table counts
         table_counts = {
