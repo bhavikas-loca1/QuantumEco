@@ -99,11 +99,10 @@ class Settings(BaseSettings):
     QUANTUM_ENTANGLEMENT_STRENGTH: float = 0.3
     
     # Analytics and demo configuration:
-    CACHE_EXPIRY_MINUTES = 5
-    MAX_SIMULATION_SIZE = 100000
-    DEMO_COMPLEXITY_LIMITS = {"low": 50, "medium": 100, "high": 200}
+    CACHE_EXPIRY_MINUTES: int = 5
+    MAX_SIMULATION_SIZE: int = 100000  
+    DEMO_COMPLEXITY_LIMITS: dict = {"low": 50, "medium": 100, "high": 200}
 
-    
     # Simulated annealing parameters
     ANNEALING_START_TEMP: float = 1000.0
     ANNEALING_ALPHA: float = 0.995

@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
 
-from backend.app.schemas.route_schemas import OptimizationGoals
+from app.schemas.route_schemas import OptimizationGoals
 
 
 class LocationData(BaseModel):

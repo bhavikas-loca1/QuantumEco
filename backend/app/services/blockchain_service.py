@@ -1,5 +1,5 @@
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
+from web3.middleware import ExtraDataToPOAMiddleware
 import json
 import hashlib
 import time
@@ -16,7 +16,7 @@ class BlockchainService:
         self.w3 = Web3(Web3.HTTPProvider(provider_url))
         
         # Add PoA middleware for Ganache compatibility
-        self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
         
         # Default account setup
         self.default_account = None
