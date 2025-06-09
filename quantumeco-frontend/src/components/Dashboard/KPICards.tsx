@@ -1,138 +1,305 @@
-import React from 'react'
-import { Paper, Typography, Box, LinearProgress } from '@mui/material'
+import React from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Chip,
+  LinearProgress,
+  Avatar,
+  Skeleton,
+} from '@mui/material';
 import {
   TrendingUp,
-  Nature,
-  LocalShipping,
-  AttachMoney,
-} from '@mui/icons-material'
-import { type DashboardData } from '../../Services/types'
+  TrendingDown,
+  TrendingFlat,
+  Co2Outlined,
+  AttachMoneyOutlined,
+  AccessTimeOutlined,
+  LocalShippingOutlined,
+  SpeedOutlined,
+  AssessmentOutlined,
+  StarOutlined,
+} from '@mui/icons-material';
+import { type KPIMetric } from '../../Services/types';
 
 interface KPICardsProps {
-  data: DashboardData | null
+  metrics: KPIMetric[];
+  loading?: boolean;
 }
 
-const KPICards: React.FC<KPICardsProps> = ({ data }) => {
-  const defaultKPIs = [
-    {
-      title: 'Cost Savings',
-      value: data?.totalSavings ? `$${data.totalSavings.cost.toLocaleString()}` : '$0',
-      subtitle: 'Total saved today',
-      icon: <AttachMoney />,
-      color: '#4caf50',
-      progress: 75,
-    },
-    {
-      title: 'Carbon Reduced',
-      value: data?.totalSavings ? `${data.totalSavings.carbon.toFixed(1)} kg` : '0 kg',
-      subtitle: 'CO² emissions saved',
-      icon: <Nature />,
-      color: '#2e7d32',
-      progress: 85,
-    },
-    {
-      title: 'Routes Optimized',
-      value: data?.recentOptimizations?.length || 0,
-      subtitle: 'Quantum-inspired optimization',
-      icon: <LocalShipping />,
-      color: '#1976d2',
-      progress: 60,
-    },
-    {
-      title: 'Efficiency Gain',
-      value: '32%',
-      subtitle: 'vs traditional routing',
-      icon: <TrendingUp />,
-      color: '#7b1fa2',
-      progress: 90,
-    },
-  ]
+/**
+ * KPICards Component
+ * Purpose: Displays key performance indicators from the analytics service
+ * Features: Dynamic icons, trend indicators, progress bars, responsive flexbox layout
+ */
+const KPICards: React.FC<KPICardsProps> = ({ metrics, loading = false }) => {
+  const getMetricIcon = (metricName: string) => {
+    const name = metricName.toLowerCase();
+    if (name.includes('cost') || name.includes('savings') || name.includes('usd') || name.includes('dollar')) {
+      return <AttachMoneyOutlined />;
+    }
+    if (name.includes('carbon') || name.includes('emission') || name.includes('co2') || name.includes('environmental')) {
+      return <Co2Outlined />;
+    }
+    if (name.includes('time') || name.includes('duration') || name.includes('minutes') || name.includes('hours')) {
+      return <AccessTimeOutlined />;
+    }
+    if (name.includes('route') || name.includes('delivery') || name.includes('optimization') || name.includes('vehicle')) {
+      return <LocalShippingOutlined />;
+    }
+    if (name.includes('efficiency') || name.includes('performance') || name.includes('score')) {
+      return <SpeedOutlined />;
+    }
+    if (name.includes('quantum') || name.includes('improvement')) {
+      return <StarOutlined />;
+    }
+    return <AssessmentOutlined />;
+  };
+
+  const getTrendIcon = (trend?: string) => {
+    switch (trend) {
+      case 'up':
+        return <TrendingUp sx={{ color: 'success.main', fontSize: 20 }} />;
+      case 'down':
+        return <TrendingDown sx={{ color: 'error.main', fontSize: 20 }} />;
+      default:
+        return <TrendingFlat sx={{ color: 'grey.500', fontSize: 20 }} />;
+    }
+  };
+
+  const getMetricColor = (metricName: string) => {
+    const name = metricName.toLowerCase();
+    if (name.includes('cost') || name.includes('savings')) return 'success.main';
+    if (name.includes('carbon') || name.includes('environmental')) return 'info.main';
+    if (name.includes('time') || name.includes('efficiency')) return 'warning.main';
+    if (name.includes('quantum') || name.includes('improvement')) return 'secondary.main';
+    return 'primary.main';
+  };
+
+  const formatMetricValue = (value: number | string) => {
+    if (typeof value === 'number') {
+      if (value >= 1000000) {
+        return `${(value / 1000000).toFixed(1)}M`;
+      }
+      if (value >= 1000) {
+        return `${(value / 1000).toFixed(1)}K`;
+      }
+      return value % 1 === 0 ? value.toString() : value.toFixed(1);
+    }
+    return value;
+  };
+
+  const getTrendColor = (trend?: string) => {
+    switch (trend) {
+      case 'up': return 'success';
+      case 'down': return 'error';
+      default: return 'default';
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 3,
+          width: '100%',
+        }}
+      >
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <Card key={i} sx={{ flex: '1 1 300px', minWidth: 300 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Skeleton variant="circular" width={48} height={48} sx={{ mr: 2 }} />
+                <Box sx={{ flex: 1 }}>
+                  <Skeleton variant="text" width="60%" height={20} />
+                  <Skeleton variant="text" width="40%" height={16} />
+                </Box>
+                <Skeleton variant="rectangular" width={60} height={24} />
+              </Box>
+              <Skeleton variant="text" width="80%" height={32} sx={{ mb: 1 }} />
+              <Skeleton variant="text" width="100%" height={16} sx={{ mb: 2 }} />
+              <Skeleton variant="rectangular" width="100%" height={6} />
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
+    );
+  }
+
+  if (!metrics || metrics.length === 0) {
+    return (
+      <Card sx={{ p: 4, textAlign: 'center' }}>
+        <AssessmentOutlined sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+        <Typography variant="h6" color="text.secondary" gutterBottom>
+          No KPI data available
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Key performance indicators will appear here after system initialization
+        </Typography>
+      </Card>
+    );
+  }
 
   return (
-    <Box 
+    <Box
       sx={{
         display: 'flex',
         flexWrap: 'wrap',
         gap: 3,
-        '& > *': {
-          flex: {
-            xs: '1 1 100%',    // Mobile: full width
-            sm: '1 1 calc(50% - 12px)',  // Tablet: 2 per row
-            md: '1 1 calc(25% - 18px)',  // Desktop: 4 per row
-          },
-          minWidth: '250px',  // Minimum width for each card
-        }
+        width: '100%',
       }}
     >
-      {defaultKPIs.map((kpi, index) => (
-        <Paper
-          key={index}
+      {metrics.map((metric, index) => (
+        <Card
+          key={`${metric.name}-${index}`}
           sx={{
-            p: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            height: 160,
-            position: 'relative',
-            overflow: 'hidden',
+            flex: '1 1 300px',
+            minWidth: 300,
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: 6,
+            },
           }}
         >
-          {/* Background gradient */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              backgroundColor: kpi.color,
-              opacity: 0.1,
-              transform: 'translate(30px, -30px)',
-            }}
-          />
-          
-          {/* Content */}
-          <Box display="flex" alignItems="center" mb={1}>
+          <CardContent>
+            {/* Header Section */}
             <Box
               sx={{
-                color: kpi.color,
-                mr: 1,
                 display: 'flex',
-                alignItems: 'center',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                mb: 2,
               }}
             >
-              {kpi.icon}
+              <Avatar
+                sx={{
+                  bgcolor: getMetricColor(metric.name),
+                  width: 48,
+                  height: 48,
+                }}
+              >
+                {getMetricIcon(metric.name)}
+              </Avatar>
+              
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {metric.trend && getTrendIcon(metric.trend)}
+                {metric.change_percent !== undefined && (
+                  <Chip
+                    label={`${metric.change_percent >= 0 ? '+' : ''}${metric.change_percent.toFixed(1)}%`}
+                    size="small"
+                    color={getTrendColor(metric.trend)}
+                    variant="outlined"
+                  />
+                )}
+              </Box>
             </Box>
-            <Typography variant="h6" component="div" sx={{ fontSize: '0.9rem' }}>
-              {kpi.title}
-            </Typography>
-          </Box>
-          
-          <Typography variant="h4" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-            {kpi.value}
-          </Typography>
-          
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {kpi.subtitle}
-          </Typography>
-          
-          {/* Progress indicator */}
-          <Box mt="auto">
-            <LinearProgress
-              variant="determinate"
-              value={kpi.progress}
-              sx={{
-                backgroundColor: 'rgba(0,0,0,0.1)',
-                '& .MuiLinearProgress-bar': {
-                  backgroundColor: kpi.color,
-                },
+
+            {/* Value Section */}
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 'bold',
+                  color: getMetricColor(metric.name),
+                  lineHeight: 1,
+                  mb: 0.5,
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                }}
+              >
+                {formatMetricValue(metric.value)}
+                {metric.unit && (
+                  <Typography
+                    component="span"
+                    variant="body2"
+                    sx={{ 
+                      ml: 1, 
+                      color: 'text.secondary', 
+                      fontSize: '0.875rem',
+                      fontWeight: 'normal'
+                    }}
+                  >
+                    {metric.unit}
+                  </Typography>
+                )}
+              </Typography>
+              
+              <Typography
+                variant="h6"
+                sx={{
+                  color: 'text.primary',
+                  fontWeight: 500,
+                  fontSize: '1.1rem',
+                }}
+              >
+                {metric.name}
+              </Typography>
+            </Box>
+
+            {/* Description */}
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ 
+                mb: 2, 
+                minHeight: 40,
+                fontSize: '0.875rem',
+                lineHeight: 1.4
               }}
-            />
-          </Box>
-        </Paper>
+            >
+              {metric.description}
+            </Typography>
+
+            {/* Progress Section */}
+            {metric.achievement_percent !== undefined && (
+              <Box sx={{ mt: 2 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 1,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    Target Achievement
+                  </Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                    {metric.achievement_percent.toFixed(0)}%
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.min(metric.achievement_percent, 100)}
+                  sx={{
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: 'grey.200',
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: getMetricColor(metric.name),
+                      borderRadius: 3,
+                    },
+                  }}
+                />
+                {metric.target_value !== undefined && (
+                  <Box sx={{ mt: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Target: {formatMetricValue(metric.target_value)} {metric.unit || ''}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            )}
+          </CardContent>
+        </Card>
       ))}
     </Box>
-  )
-}
+  );
+};
 
-export default KPICards
+export default KPICards;
