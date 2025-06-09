@@ -119,6 +119,28 @@ app.include_router(blockchain_router, prefix="/api/blockchain", tags=["⛓️ Bl
 app.include_router(analytics_router, prefix="/api/analytics", tags=["📈 Analytics & Dashboard"])
 app.include_router(demo_router, prefix="/api/demo", tags=["🎯 Demo Data"])
 
+
+"""
+# Test health check
+curl http://localhost:8000/health
+
+# Test quick demo
+curl http://localhost:8000/demo/quick-start
+
+# Test route optimization (POST request)
+curl -X POST "http://localhost:8000/api/routes/optimize" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "locations": [
+      {"id": "depot", "latitude": 40.7128, "longitude": -74.0060, "demand_kg": 0},
+      {"id": "loc1", "latitude": 40.7589, "longitude": -73.9851, "demand_kg": 50}
+    ],
+    "vehicles": [
+      {"id": "truck1", "type": "diesel_truck", "capacity_kg": 1000, "cost_per_km": 0.85, "emission_factor": 0.27}
+    ]
+  }'
+"""
+
 # Root endpoint
 @app.get("/", tags=["System"])
 async def root():
@@ -223,7 +245,50 @@ async def system_info():
 # Demo quick-start endpoint
 @app.get("/demo/quick-start", tags=["🎯 Demo Data"])
 async def demo_quick_start():
-    """Quick demo endpoint to showcase the system"""
+    """Quick demo endpoint to showcase the system
+    
+        Expected Output:
+        
+        {
+        "demo_title": "🚀 QuantumEco Intelligence - Live Demo",
+        "scenario": "Walmart NYC Delivery Optimization",
+        "locations": 20,
+        "vehicles": 3,
+        "results": {
+            "traditional_method": {
+                "total_cost": 372.8,
+                "total_carbon": 91.4,
+                "total_time": 1373.5
+            },
+            "quantum_inspired_method": {
+                "total_cost": 264.73,
+                "total_carbon": 63.44,
+                "total_time": 1074.3
+            },
+            "improvements": {
+                "cost_saved": "$108.07 (29.0%)",
+                "carbon_reduced": "27.96 kg CO₂ (30.6%)",
+                "time_saved": "299.2 min (21.8%)"
+            }
+        },
+        "walmart_scale_projection": {
+            "annual_cost_savings": "$103,544,568,750",
+            "annual_carbon_reduction": "26,789,175 tons CO₂",
+            "stores_impacted": "10,500"
+        },
+        "blockchain_certificates": 3,
+        "environmental_impact": {
+            "trees_planted_equivalent": 1.3,
+            "cars_off_road_days": 2.2,
+            "homes_powered_hours": 33.7,
+            "miles_not_driven": 69.2,
+            "gallons_fuel_saved": 3.1
+        },
+        "generated_at": "2025-06-09T05:11:16.648551"
+        }
+    
+    
+    """
     try:
         logger.info("🎯 Generating quick demo scenario...")
         
