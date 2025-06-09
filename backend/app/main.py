@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Any
 
 # Import all controllers
@@ -149,19 +149,20 @@ async def health_check():
         services_health = {
             "route_optimizer": await route_optimizer.health_check(),
             "carbon_calculator": await carbon_calculator.health_check(),
-            "blockchain_service": await blockchain_service.test_connection(),
-            "analytics_service": await analytics_service.health_check()
+            "analytics_service": await analytics_service.health_check(),
         }
+        
+        blockchain_health = await blockchain_service.test_connection()
         
         # Determine overall health
         all_healthy = (
             db_health["status"] == "healthy" and
-            all("healthy" in str(status) for status in services_health.values())
-        )
-        
+            all("healthy" in str(status) for status in services_health.values()) and 
+            ("connected" in str(blockchain_health) or "healthy" in str(blockchain_health))
+            )
         return {
             "status": "healthy" if all_healthy else "degraded",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "database": db_health,
             "services": services_health,
             "uptime": "operational",
