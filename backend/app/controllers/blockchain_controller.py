@@ -42,6 +42,20 @@ async def create_delivery_certificate(
     """
     Create blockchain-verified delivery certificate
     Stores delivery optimization results immutably on blockchain
+ 
+    Test certificate creation:
+    
+    curl -X POST "http://localhost:8000/api/blockchain/certificate" \
+    -H "Content-Type: application/json" \
+    -d '{
+    "route_id": "test_route_001",
+    "vehicle_id": "truck_001",
+    "carbon_saved": 25.5,
+    "cost_saved": 150.0,
+    "distance_km": 100.0,
+    "optimization_score": 95
+    }'
+
     """
     try:
         # Validate input data
