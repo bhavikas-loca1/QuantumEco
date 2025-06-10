@@ -1,0 +1,199 @@
+{
+  "scenario_id": "scenario_1718024400",
+  "name": "Walmart NYC Quantum Optimization",
+  "description": "50 deliveries optimized using quantum-inspired algorithms",
+  "generated_at": "2025-06-10T12:13:20.123456",
+  "locations": [
+    {
+      "id": "loc_1",
+      "name": "Delivery 1 - Times Square",
+      "lat": 40.758896,
+      "lng": -73.985130,
+      "priority": "high",
+      "weight_kg": 150,
+      "time_window": {"start": "08:00", "end": "12:00"}
+    },
+    {
+      "id": "loc_2",
+      "name": "Delivery 2 - Central Park West",
+      "lat": 40.778903,
+      "lng": -73.968857,
+      "priority": "medium",
+      "weight_kg": 75,
+      "time_window": {"start": "09:00", "end": "14:00"}
+    },
+    {
+      "id": "loc_50",
+      "name": "Delivery 50 - JFK Airport",
+      "lat": 40.641311,
+      "lng": -73.778139,
+      "priority": "critical",
+      "weight_kg": 200,
+      "time_window": {"start": "06:00", "end": "10:00"}
+    }
+  ],
+  "vehicles": [
+    {
+      "id": "vehicle_1",
+      "type": "electric_van",
+      "capacity_kg": 500,
+      "base_location": {"name": "Walmart NYC Distribution Center", "lat": 40.7128, "lng": -74.0060},
+      "cost_per_km": 0.65,
+      "emission_factor": 0.05
+    },
+    {
+      "id": "vehicle_2",
+      "type": "hybrid_truck",
+      "capacity_kg": 750,
+      "base_location": {"name": "Brooklyn Warehouse", "lat": 40.6892, "lng": -73.9442},
+      "cost_per_km": 0.75,
+      "emission_factor": 0.12
+    },
+    {
+      "id": "vehicle_3",
+      "type": "diesel_truck",
+      "capacity_kg": 1000,
+      "base_location": {"name": "Queens Logistics Center", "lat": 40.7282, "lng": -73.7949},
+      "cost_per_km": 0.85,
+      "emission_factor": 0.27
+    },
+    {
+      "id": "vehicle_4",
+      "type": "electric_van",
+      "capacity_kg": 500,
+      "base_location": {"name": "Manhattan Hub", "lat": 40.7589, "lng": -73.9851},
+      "cost_per_km": 0.65,
+      "emission_factor": 0.05
+    },
+    {
+      "id": "vehicle_5",
+      "type": "hybrid_truck",
+      "capacity_kg": 750,
+      "base_location": {"name": "Bronx Distribution Point", "lat": 40.8448, "lng": -73.8648},
+      "cost_per_km": 0.75,
+      "emission_factor": 0.12
+    }
+  ],
+  "optimization_results": {
+    "traditional": {
+      "total_distance_km": 675.32,
+      "total_time_hrs": 15.5,
+      "total_cost_usd": 987.45,
+      "total_carbon_kg": 325.67,
+      "routes_used": 7,
+      "average_vehicle_utilization": 78.4
+    },
+    "quantum": {
+      "total_distance_km": 489.21,
+      "total_time_hrs": 10.8,
+      "total_cost_usd": 725.50,
+      "total_carbon_kg": 208.15,
+      "routes_used": 5,
+      "optimization_time_sec": 12.3,
+      "quantum_score": 92,
+      "average_vehicle_utilization": 92.6,
+      "improvement_metrics": {
+        "distance": "27.5% reduction",
+        "time": "30.3% reduction",
+        "cost": "26.5% reduction",
+        "carbon": "36.1% reduction"
+      }
+    }
+  },
+  "blockchain_certificates": [
+    {
+      "certificate_id": "cert_1a2b3c",
+      "route_id": "route_1",
+      "vehicle_id": "vehicle_1",
+      "carbon_saved_kg": 117.52,
+      "cost_saved_usd": 261.95,
+      "distance_km": 98.4,
+      "optimization_score": 94,
+      "verification_hash": "sha256:abc123...def456",
+      "transaction_hash": "0x4a5b6c789def0123456789abcdef0123456789abcdef0123456789abcdef",
+      "block_number": 1234567,
+      "timestamp": "2025-06-10T12:15:00.000000",
+      "ett_token_id": "ett_1a2b3c",
+      "carbon_credits_issued": 105
+    },
+    {
+      "certificate_id": "cert_2d3e4f",
+      "route_id": "route_2",
+      "vehicle_id": "vehicle_2",
+      "carbon_saved_kg": 89.34,
+      "cost_saved_usd": 189.50,
+      "distance_km": 120.7,
+      "optimization_score": 91,
+      "verification_hash": "sha256:def456...ghi789",
+      "transaction_hash": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "block_number": 1234568,
+      "timestamp": "2025-06-10T12:20:00.000000",
+      "ett_token_id": "ett_2d3e4f",
+      "carbon_credits_issued": 85
+    },
+    {
+      "certificate_id": "cert_3g4h5i",
+      "route_id": "route_3",
+      "vehicle_id": "vehicle_3",
+      "carbon_saved_kg": 142.15,
+      "cost_saved_usd": 325.80,
+      "distance_km": 156.2,
+      "optimization_score": 89,
+      "verification_hash": "sha256:ghi789...jkl012",
+      "transaction_hash": "0xabcdef0123456789abcdef0123456789abcdef0123456789abcdef01234567",
+      "block_number": 1234569,
+      "timestamp": "2025-06-10T12:25:00.000000",
+      "ett_token_id": "ett_3g4h5i",
+      "carbon_credits_issued": 127
+    },
+    {
+      "certificate_id": "cert_4j5k6l",
+      "route_id": "route_4",
+      "vehicle_id": "vehicle_4",
+      "carbon_saved_kg": 76.89,
+      "cost_saved_usd": 142.30,
+      "distance_km": 87.6,
+      "optimization_score": 95,
+      "verification_hash": "sha256:jkl012...mno345",
+      "transaction_hash": "0x3456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef01",
+      "block_number": 1234570,
+      "timestamp": "2025-06-10T12:30:00.000000",
+      "ett_token_id": "ett_4j5k6l",
+      "carbon_credits_issued": 72
+    },
+    {
+      "certificate_id": "cert_5m6n7o",
+      "route_id": "route_5",
+      "vehicle_id": "vehicle_5",
+      "carbon_saved_kg": 203.45,
+      "cost_saved_usd": 415.60,
+      "distance_km": 210.3,
+      "optimization_score": 88,
+      "verification_hash": "sha256:mno345...pqr678",
+      "transaction_hash": "0x6789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123",
+      "block_number": 1234571,
+      "timestamp": "2025-06-10T12:35:00.000000",
+      "ett_token_id": "ett_5m6n7o",
+      "carbon_credits_issued": 195
+    }
+  ],
+  "analytics": {
+    "total_savings": {
+      "carbon_kg": 629.35,
+      "cost_usd": 1335.15,
+      "distance_km": 186.11,
+      "time_hrs": 4.7
+    },
+    "environmental_impact": {
+      "equivalent_trees_planted": 289,
+      "equivalent_cars_removed": 14.5,
+      "equivalent_homes_powered": 8.2
+    },
+    "walmart_scale_projection": {
+      "annual_cost_savings": "$4.2B",
+      "annual_carbon_reduction": "230K tons",
+      "potential_ett_tokens": "1.2M",
+      "potential_carbon_credits": "850K"
+    }
+  }
+}
