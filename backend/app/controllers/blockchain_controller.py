@@ -5,6 +5,7 @@ import time
 import uuid
 import hashlib
 from datetime import datetime
+import logging
 
 from app.schemas.blockchain_schemas import (
     CertificateCreationRequest,
@@ -67,10 +68,12 @@ async def create_delivery_certificate(
         
         print("[CERTIFICATE] Input validation successful")
 
-        # Generate certificate ID
+        # Generate certificate ID and timestamp server-side
         print("[CERTIFICATE] Generating certificate ID...")
         certificate_id = generate_certificate_id()
+        current_timestamp = int(time.time())
         print(f"[CERTIFICATE] Generated certificate ID: {certificate_id}")
+        print(f"[CERTIFICATE] Generated timestamp: {current_timestamp}")
 
         # Prepare certificate data
         print("[CERTIFICATE] Preparing certificate data for blockchain...")
@@ -81,7 +84,7 @@ async def create_delivery_certificate(
             "cost_saved": request.cost_saved,
             "distance_km": request.distance_km,
             "optimization_score": request.optimization_score,
-            "timestamp": int(time.time())
+            "timestamp": current_timestamp  # Use server-generated timestamp
         }
         print(f"[CERTIFICATE] Certificate data prepared: {certificate_data}")
         
@@ -107,12 +110,14 @@ async def create_delivery_certificate(
 
         # Prepare response
         print("[CERTIFICATE] Preparing API response...")
+        current_datetime = datetime.utcnow()
+        
         response = CertificateDetailsResponse(
             certificate_id=certificate_id,
             route_id=request.route_id,
             vehicle_id=request.vehicle_id,
-            carbon_saved_kg=request.carbon_saved,
-            cost_saved_usd=request.cost_saved,
+            carbon_saved=request.carbon_saved,
+            cost_saved=request.cost_saved,
             distance_km=request.distance_km,
             optimization_score=request.optimization_score,
             verification_hash=verification_hash,
@@ -120,11 +125,13 @@ async def create_delivery_certificate(
             block_number=blockchain_result["block_number"],
             gas_used=blockchain_result.get("gas_used", 0),
             verified=True,
-            created_at=datetime.utcnow(),
+            created_at=current_datetime,
             blockchain_network="ganache_local",
-            certificate_status="verified"
+            certificate_status="verified",
+            issuer=request.issuer
         )
-        print(f"[CERTIFICATE] Response object created: {response.dict()}")
+    
+        print(f"[CERTIFICATE] Response object created successfully")
 
         # Cache management
         print("[CERTIFICATE] Updating certificate cache...")
@@ -137,7 +144,7 @@ async def create_delivery_certificate(
             "transaction_type": "certificate_creation",
             "block_number": blockchain_result["block_number"],
             "gas_used": blockchain_result.get("gas_used", 0),
-            "timestamp": datetime.utcnow()
+            "timestamp": current_datetime
         }
         print(f"[CERTIFICATE] Transaction cached. Total transactions in cache: {len(transaction_cache)}")
 
@@ -162,6 +169,22 @@ async def create_delivery_certificate(
         print(f"[ERROR] Exception type: {type(e)}")
         raise HTTPException(status_code=500, detail=error_msg)
 
+@router.get('/transaction/<tx_hash>', response_model=TransactionDetailsResponse)
+def get_transaction_details(tx_hash):
+    """Get blockchain transaction details"""
+    try:        
+        # Get transaction details
+        result = blockchain_service.get_transaction_details(tx_hash)
+        return {result, 200}
+        
+    except Exception as e:
+        logging.error(f"Transaction details failed: {str(e)}")
+        message = {({
+            "error": str(e),
+            "transaction_hash": tx_hash
+        }), 500}
+        
+        return message
 
 @router.get("/certificate/{certificate_id}", response_model=CertificateDetailsResponse)
 async def get_certificate_details(certificate_id: str):
@@ -525,7 +548,7 @@ async def get_blockchain_explorer_data():
         error_msg = f"Failed to get explorer data: {str(e)}"
         print(f"[ERROR] {error_msg}")
         print(f"[ERROR] Exception type: {type(e)}")
-        print(f"[ERROR] Exception traceback: ", exc_info=True)
+        print(f"[ERROR] Exception traceback:")
         raise HTTPException(status_code=500, detail=error_msg)
 
 

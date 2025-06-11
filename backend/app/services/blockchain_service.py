@@ -8,12 +8,41 @@ import asyncio
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from eth_account import Account
+from app.utils.web3_utils import Web3Utils
+
+
+DEFAULT_CONFIG = {
+    "ganache_url": "http://127.0.0.1:8545",
+    "api_port": 8546,
+    "gas_limit": 300000,
+    "gas_price": 20000000000,  # 20 Gwei
+    "chain_id": 1337,  # Ganache default
+    "confirmation_blocks": 1,
+    "timeout": 60
+}
+
+# Contract addresses (will be updated after deployment)
+CONTRACT_ADDRESSES = {
+    "delivery_verification": None,
+    "environmental_trust_token": None,
+    "carbon_credit_token": None
+}
+
+# ABI cache for contract interfaces
+ABI_CACHE = {}
 
 class BlockchainService:
-    def __init__(self, provider_url: str = 'http://127.0.0.1:8545'):
+    def __init__(self, provider_url: str = 'http://127.0.0.1:8545', config: Optional[Dict[str, Any]] = None):
         """Initialize blockchain service with Ganache connection."""
         self.provider_url = provider_url
+        self.config = {**DEFAULT_CONFIG, **(config or {})}
         self.w3 = Web3(Web3.HTTPProvider(provider_url))
+        
+        self.web3_utils = Web3Utils(
+            provider_url=self.config["ganache_url"],
+            gas_limit=self.config["gas_limit"],
+            gas_price=self.config["gas_price"]
+        )
         
         # Add PoA middleware for Ganache compatibility
         self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
@@ -586,29 +615,34 @@ class BlockchainService:
             
         except Exception as e:
             return []
-    
-    async def get_recent_transactions(self, count: int) -> List[Dict[str, Any]]:
-        """Get recent blockchain transactions."""
+        
+    async def get_recent_transactions(self, limit: int = 10) -> List[Dict[str, Any]]:
+        """Get recent transactions with all required fields"""
         try:
-            # For demo, return mock transactions
+            # Generate mock transactions with all required fields
             transactions = []
+            current_time = int(time.time())
             
-            for i in range(count):
-                tx_hash = '0x' + hashlib.sha256(f"tx_{i}{int(time.time())}".encode()).hexdigest()
+            for i in range(limit):
+                tx_hash = f"0x{hashlib.sha256(f'tx_{current_time}_{i}'.encode()).hexdigest()}"
                 transactions.append({
-                    'hash': tx_hash,
-                    'from': self.default_account,
-                    'to': self.delivery_contract_address,
-                    'value': random.randint(0, 1000000),
-                    'gasUsed': random.randint(150000, 250000),
-                    'timestamp': int(time.time()) - (i * 30)
+                    "hash": tx_hash,
+                    "from_address": self.default_account,
+                    'to_address': self.delivery_contract_address,
+                    "value": int(random.uniform(1, 50)),
+                    "gas_used": random.randint(21000, 100000),
+                    "gas_price": 20000000000,
+                    "block_number": random.randint(1, 100),
+                    "timestamp": int(current_time - (i * 30))
                 })
             
             return transactions
-            
+        
         except Exception as e:
+            print(f"Error getting recent transactions: {e}")
+            # Return empty list with proper structure if error
             return []
-    
+        
     async def get_gas_statistics(self) -> Dict[str, Any]:
         """Get gas price statistics."""
         try:
@@ -777,3 +811,5 @@ class BlockchainService:
                 })
         
         return certificates
+    
+    
