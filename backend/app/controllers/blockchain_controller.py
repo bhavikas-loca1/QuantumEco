@@ -14,6 +14,7 @@ from app.schemas.blockchain_schemas import (
     CertificateVerificationResponse,
     ETTCreationRequest,
     ETTCreationResponse,
+    EnvironmentalEquivalents,
     TransactionDetailsResponse,
     RecentCertificatesResponse,
     BlockchainExplorerResponse,
@@ -34,6 +35,7 @@ blockchain_service = BlockchainService()
 certificate_cache: Dict[str, Dict[str, Any]] = {}
 transaction_cache: Dict[str, Dict[str, Any]] = {}
 ett_cache: Dict[int, Dict[str, Any]] = {}
+carbon_credit_cache: Dict[int, Dict[str, Any]] = {}
 
 @router.post("/certificate", response_model=CertificateDetailsResponse)
 async def create_delivery_certificate(
@@ -632,9 +634,15 @@ async def create_carbon_credit_token(
             "route_id": request.route_id,
             "carbon_amount_kg": request.carbon_amount_kg,
             "value_usd": request.value_usd,
-            "issuer": request.issuer or "QuantumEco Intelligence",
+            "vintage_year": request.vintage_year,
+            "issuer": request.issuer,
             "metadata": request.metadata or {}
         })
+        
+        if credit_result.get("error"):
+            error_msg = f"Carbon credit creation failed: {credit_result.get('error')}"
+            print(f"[CARBON] Error: {error_msg}")
+            raise HTTPException(status_code=500, detail=error_msg)
         
         if not credit_result.get("credit_id"):
             raise HTTPException(
@@ -643,8 +651,16 @@ async def create_carbon_credit_token(
             )
         
         # Calculate environmental equivalents
-        environmental_equivalents = blockchain_service.calculate_environmental_equivalents(
-            request.carbon_amount_kg
+        # environmental_equivalents = blockchain_service.calculate_environmental_equivalents(
+        #     request.carbon_amount_kg
+        # )
+        
+        # Calculate environmental equivalents
+        equivalents = EnvironmentalEquivalents(
+            trees_planted_equivalent=request.carbon_amount_kg * 0.06,
+            cars_off_road_days=request.carbon_amount_kg * 0.22,
+            homes_powered_hours=request.carbon_amount_kg * 1.37,
+            miles_not_driven=request.carbon_amount_kg * 2.31
         )
         
         response = CarbonCreditCreationResponse(
@@ -653,15 +669,33 @@ async def create_carbon_credit_token(
             carbon_amount_kg=request.carbon_amount_kg,
             value_usd=request.value_usd,
             price_per_kg=request.value_usd / request.carbon_amount_kg,
-            issuer=request.issuer or "QuantumEco Intelligence",
+            issuer=request.issuer,
             transaction_hash=credit_result["transaction_hash"],
             block_number=credit_result.get("block_number", 0),
             credit_status="active",
-            environmental_equivalents=environmental_equivalents,
+            environmental_equivalents=equivalents,
             created_at=datetime.utcnow(),
-            expires_at=datetime.utcnow().replace(year=datetime.utcnow().year + 1),  # 1 year expiry
+            expires_at=datetime.utcnow().replace(year=datetime.utcnow().year + 5),
+            verification_standard=request.verification_standard,
+            vintage_year=request.vintage_year,
             metadata=request.metadata or {}
         )
+        
+        print(f"[CARBON] Response created successfully")
+        
+        # Cache the carbon credit
+        carbon_credit_cache[credit_result["credit_id"]] = {
+            "credit_id": credit_result["credit_id"],
+            "route_id": request.route_id,
+            "carbon_amount_kg": request.carbon_amount_kg,
+            "value_usd": request.value_usd,
+            "transaction_hash": credit_result["transaction_hash"],
+            "block_number": credit_result.get("block_number", 0),
+            "created_at": datetime.utcnow().isoformat(),
+            "credit_status": "active"
+        }
+        
+        print(f"[CARBON] Credit cached. Total credits in cache: {len(carbon_credit_cache)}")
         
         # Store transaction details
         transaction_cache[credit_result["transaction_hash"]] = {
@@ -675,7 +709,20 @@ async def create_carbon_credit_token(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Carbon credit creation failed: {str(e)}")
-
+    
+# Add endpoint to get carbon credits
+@router.get("/carbon-credits")
+async def get_carbon_credits(limit: int = 10):
+    """Get recent carbon credits"""
+    try:
+        credits = list(carbon_credit_cache.values())
+        credits.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+        return {
+            "credits": credits[:limit],
+            "total_count": len(credits)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get carbon credits: {str(e)}")
 
 # Background task for database storage
 async def store_certificate_in_db(certificate_id: str, certificate_data: Dict[str, Any]):

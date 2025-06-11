@@ -1,12 +1,13 @@
-// Frontend blockchain service integration
+// Services/blockchain.ts - Updated with better error handling
+
 import { api } from './api';
 
 export interface BlockchainCertificate {
   certificate_id: string;
   route_id: string;
   vehicle_id: string;
-  carbon_saved_kg: number;
-  cost_saved_usd: number;
+  carbon_saved: number;
+  cost_saved: number;
   optimization_score: number;
   verification_hash: string;
   transaction_hash: string;
@@ -44,9 +45,29 @@ export const createLiveCertificate = async (certData: {
   cost_saved: number;
   distance_km: number;
   optimization_score: number;
+  delivery_count?: number;
+  time_saved_minutes?: number;
+  metadata?: any;
+  issuer?: string;
 }): Promise<BlockchainCertificate> => {
-  const response = await api.post('/api/blockchain/certificate', certData);
-  return response.data;
+  try {
+    const response = await api.post('/api/blockchain/certificate', {
+      route_id: certData.route_id,
+      vehicle_id: certData.vehicle_id,
+      carbon_saved: certData.carbon_saved,
+      cost_saved: certData.cost_saved,
+      distance_km: certData.distance_km,
+      optimization_score: certData.optimization_score,
+      delivery_count: certData.delivery_count || 1,
+      time_saved_minutes: certData.time_saved_minutes || 0,
+      metadata: certData.metadata || {},
+      issuer: certData.issuer || 'QuantumEco Intelligence',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Certificate creation failed:', error);
+    throw error;
+  }
 };
 
 // Live ETT creation for demo
@@ -56,8 +77,13 @@ export const createETTToken = async (ettData: {
   carbon_impact: number;
   sustainability_rating: number;
 }): Promise<EnvironmentalTrustToken> => {
-  const response = await api.post('/api/blockchain/ett/create', ettData);
-  return response.data;
+  try {
+    const response = await api.post('/api/blockchain/ett/create', ettData);
+    return response.data;
+  } catch (error) {
+    console.error('ETT creation failed:', error);
+    throw error;
+  }
 };
 
 // Create carbon credit
@@ -67,8 +93,35 @@ export const createCarbonCredit = async (creditData: {
   value_usd: number;
   vintage_year: number;
 }): Promise<CarbonCredit> => {
-  const response = await api.post('/api/blockchain/carbon-credit', creditData);
-  return response.data;
+  try {
+    const response = await api.post('/api/blockchain/carbon-credit', creditData);
+    return response.data;
+  } catch (error) {
+    console.error('Carbon credit creation failed:', error);
+    throw error;
+  }
+};
+
+// Get ETT tokens
+export const getETTTokens = async (limit: number = 10): Promise<EnvironmentalTrustToken[]> => {
+  try {
+    const response = await api.get(`/api/blockchain/ett/tokens?limit=${limit}`);
+    return response.data.tokens || [];
+  } catch (error) {
+    console.error('Failed to get ETT tokens:', error);
+    return [];
+  }
+};
+
+// Get carbon credits
+export const getCarbonCredits = async (limit: number = 10): Promise<CarbonCredit[]> => {
+  try {
+    const response = await api.get(`/api/blockchain/carbon-credits?limit=${limit}`);
+    return response.data.credits || [];
+  } catch (error) {
+    console.error('Failed to get carbon credits:', error);
+    return [];
+  }
 };
 
 // Verify certificate
@@ -88,16 +141,3 @@ export const getBlockchainExplorer = async () => {
   const response = await api.get('/api/blockchain/explorer');
   return response.data;
 };
-
-// Services/blockchain.ts - Add ETT token fetching
-
-export const getETTTokens = async (limit: number = 10): Promise<EnvironmentalTrustToken[]> => {
-  try {
-    const response = await api.get(`/api/blockchain/ett/tokens?limit=${limit}`);
-    return response.data.tokens;
-  } catch (error) {
-    console.error('Failed to get ETT tokens:', error);
-    return [];
-  }
-};
-

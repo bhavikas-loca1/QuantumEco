@@ -307,6 +307,30 @@ async def compare_routes(request: RouteComparisonRequest):
             quantum_task, traditional_task
         )
         
+        try:
+            # Check if traditional_result has the expected structure
+            if not isinstance(traditional_result, dict):
+                raise ValueError("Traditional optimization result is not a dictionary")
+            
+            if "routes" not in traditional_result:
+                # If routes key is missing, create a default structure
+                traditional_result["routes"] = []
+                print(f"[WARNING] Missing 'routes' key in traditional_result. Using empty routes.")
+            
+            if "routes" not in quantum_result:
+                quantum_result["routes"] = []
+                print(f"[WARNING] Missing 'routes' key in quantum_result. Using empty routes.")
+            
+        except Exception as e:
+            print(f"[ERROR] Route comparison failed: {str(e)}")
+            # Return a safe fallback response
+            return {
+                "error": "Route comparison temporarily unavailable",
+                "traditional_result": {"routes": [], "total_cost": 0, "total_carbon": 0},
+                "quantum_result": {"routes": [], "total_cost": 0, "total_carbon": 0},
+                "comparison": {"improvement": 0}
+            }
+        
         logger.info("Both optimizations completed, calculating carbon emissions")
         logger.debug(f"Quantum result: {quantum_result}")
         logger.debug(f"Traditional result: {traditional_result}")

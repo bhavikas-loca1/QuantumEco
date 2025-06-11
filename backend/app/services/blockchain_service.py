@@ -396,6 +396,17 @@ class BlockchainService:
         try:
             nonce = self.w3.eth.get_transaction_count(self.default_account)
             
+            # Build transaction (mock ABI call)
+            # transaction = {
+            #     'from': self.default_account,
+            #     'nonce': nonce,
+            #     'gas': 200000,
+            #     'gasPrice': self.w3.eth.gas_price,
+            #     'to': self.delivery_contract_address,
+            #     'value': 0,
+            #     'data': '0x' + hashlib.sha256(f"createETT_{token_data['route_id']}".encode()).hexdigest()[:40]
+            # }
+            
             transaction = self.delivery_contract.functions.createETT(
                 token_data['route_id'],
                 token_data['trust_score'],
@@ -409,7 +420,7 @@ class BlockchainService:
             })
             
             signed_txn = self.w3.eth.account.sign_transaction(transaction, self.private_key)
-            tx_hash = self.w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+            tx_hash = self.w3.eth.send_raw_transaction(signed_txn.raw_transaction)
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
             
             # Extract token ID from logs (simplified)
