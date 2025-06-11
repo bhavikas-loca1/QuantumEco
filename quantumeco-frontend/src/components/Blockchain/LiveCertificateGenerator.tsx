@@ -51,18 +51,28 @@ const LiveCertificateGenerator: React.FC<LiveCertificateGeneratorProps> = ({
       setCertificate(cert);
       setStep(2);
 
-      // Step 2: Create Environmental Trust Token
-      const ett = await createETTToken({
-        route_id: routeData.route_id,
-        trust_score: routeData.optimization_score,
-        carbon_impact: routeData.carbon_saved,
-        sustainability_rating: Math.min(routeData.optimization_score + 2, 100),
-      });
-      setEttToken(ett);
+      const ettData = {
+      route_id: certificate.route_id,
+      trust_score: Math.floor(Math.random() * 20) + 80, // 80-100
+      carbon_impact: certificate.carbon_saved_kg,
+      sustainability_rating: Math.floor(Math.random() * 20) + 80, // 80-100
+      };
+
+      // // Step 2: Create Environmental Trust Token
+      // const ett = await createETTToken({
+      //   route_id: routeData.route_id,
+      //   trust_score: routeData.optimization_score,
+      //   carbon_impact: routeData.carbon_saved,
+      //   sustainability_rating: Math.min(routeData.optimization_score + 2, 100),
+      // });
+
+      await createETTToken(ettData);
+
+      setEttToken(ettData);
       setStep(3);
 
       if (onCertificateCreated) {
-        onCertificateCreated({ certificate: cert, ett });
+        onCertificateCreated({ certificate: cert, ettData });
       }
     } catch (error) {
       console.error('Certificate creation failed:', error);

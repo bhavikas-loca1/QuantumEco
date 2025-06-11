@@ -1,3 +1,5 @@
+// Components/BlockchainVerification.tsx
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -33,6 +35,10 @@ const BlockchainVerification: React.FC = () => {
 
   useEffect(() => {
     loadBlockchainData();
+    
+    // Auto-refresh every 10 seconds
+    const interval = setInterval(loadBlockchainData, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const loadBlockchainData = async () => {
@@ -62,8 +68,11 @@ const BlockchainVerification: React.FC = () => {
         {/* Network Stats */}
         <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
           <Chip label={`Network: Ganache (ID: ${explorerData?.network_id || 1337})`} color="success" />
-          <Chip label={`Latest Block: ${explorerData?.latest_block?.toLocaleString() || 'Loading...'}`} />
-          <Chip label={`Total Certificates: ${explorerData?.total_deliveries || 0}`} color="info" />
+          <Chip label={`Latest Block: ${explorerData?.latest_block_number?.toLocaleString() || 'Loading...'}`} />
+          <Chip 
+            label={`Total Certificates: ${explorerData?.total_certificates || 0}`} 
+            color="info" 
+          />
         </Box>
 
         {/* Recent Transactions */}
@@ -90,7 +99,7 @@ const BlockchainVerification: React.FC = () => {
                     </Box>
                   </TableCell>
                   <TableCell>Certificate</TableCell>
-                  <TableCell>{(tx.blockNumber || 1000000 + index).toLocaleString()}</TableCell>
+                  <TableCell>{(tx.block_number || 1000000 + index).toLocaleString()}</TableCell>
                   <TableCell>
                     <Chip label="Verified" color="success" size="small" icon={<VerifiedOutlined />} />
                   </TableCell>
@@ -105,6 +114,7 @@ const BlockchainVerification: React.FC = () => {
           size="small"
           sx={{ mt: 2 }}
           onClick={loadBlockchainData}
+          disabled={loading}
         >
           Refresh Network Data
         </Button>

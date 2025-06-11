@@ -33,6 +33,7 @@ blockchain_service = BlockchainService()
 # In-memory cache for certificates and transactions (for demo purposes)
 certificate_cache: Dict[str, Dict[str, Any]] = {}
 transaction_cache: Dict[str, Dict[str, Any]] = {}
+ett_cache: Dict[int, Dict[str, Any]] = {}
 
 @router.post("/certificate", response_model=CertificateDetailsResponse)
 async def create_delivery_certificate(
@@ -237,6 +238,19 @@ async def get_certificate_details(certificate_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve certificate: {str(e)}")
 
+# Add new endpoint to get ETT tokens
+@router.get("/ett/tokens")
+async def get_ett_tokens(limit: int = 10):
+    """Get recent ETT tokens"""
+    try:
+        tokens = list(ett_cache.values())
+        tokens.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+        return {
+            "tokens": tokens[:limit],
+            "total_count": len(tokens)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get ETT tokens: {str(e)}")
 
 @router.post("/verify", response_model=CertificateVerificationResponse)
 async def verify_certificate_authenticity(request: CertificateVerificationRequest):
@@ -308,6 +322,9 @@ async def create_environmental_trust_token(
     Links to existing delivery certificate and adds sustainability metrics
     """
     try:
+        print(f"[ETT] Starting ETT creation for route {request.route_id}")
+        print(f"[ETT] Request data: {request.dict()}")
+        
         # Validate input parameters
         if request.trust_score < 0 or request.trust_score > 100:
             raise HTTPException(status_code=400, detail="Trust score must be between 0 and 100")
@@ -323,6 +340,8 @@ async def create_environmental_trust_token(
                 detail=f"Referenced route certificate {request.route_id} not found"
             )
         
+        print("[ETT] Certificate verification successful")
+        
         # Create ETT on blockchain
         ett_result = await blockchain_service.create_environmental_trust_token({
             "route_id": request.route_id,
@@ -331,6 +350,8 @@ async def create_environmental_trust_token(
             "sustainability_rating": request.sustainability_rating,
             "metadata": request.metadata or {}
         })
+        
+        print(f"[ETT] Blockchain result: {ett_result}")
         
         if not ett_result.get("token_id"):
             raise HTTPException(
@@ -355,8 +376,11 @@ async def create_environmental_trust_token(
             block_number=ett_result.get("block_number", 0),
             token_status="active",
             created_at=datetime.utcnow(),
+            expires_at=None,
             metadata=request.metadata or {}
         )
+        
+        print(f"[ETT] Response created successfully: {response.dict()}")
         
         # Store transaction details
         transaction_cache[ett_result["transaction_hash"]] = {
@@ -366,10 +390,29 @@ async def create_environmental_trust_token(
             "timestamp": datetime.utcnow()
         }
         
-        return response
+        # After successful creation, add this:
+        ett_cache[ett_result["token_id"]] = {
+            "token_id": ett_result["token_id"],
+            "route_id": request.route_id,
+            "trust_score": request.trust_score,
+            "carbon_impact_kg": request.carbon_impact,
+            "sustainability_rating": request.sustainability_rating,
+            "transaction_hash": ett_result["transaction_hash"],
+            "block_number": ett_result.get("block_number", 0),
+            "created_at": datetime.utcnow().isoformat(),
+            "is_active": True,
+            "owner": "0x742d35Cc6634C0532925a3b8D93329B5e3c8E930"
+        }
         
+        print(f"[ETT] Token cached. Total ETTs in cache: {len(ett_cache)}")            
+        print("[ETT] ETT creation completed successfully")
+        return response
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"ETT creation failed: {str(e)}")
+        error_msg = f"ETT creation failed: {str(e)}"
+        print(f"[ETT] Unexpected error: {error_msg}")
+        print(f"[ETT] Exception type: {type(e)}")
+        raise HTTPException(status_code=500, detail=error_msg)
 
 
 @router.get("/transaction/{tx_hash}", response_model=TransactionDetailsResponse)

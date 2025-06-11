@@ -138,7 +138,8 @@ class ETTCreationResponse(BaseModel):
     environmental_impact_description: str = Field(..., description="Human-readable impact description")
     transaction_hash: str = Field(..., description="Blockchain transaction hash")
     block_number: int = Field(..., description="Block number")
-    token_status: TokenStatus = Field(..., description="Token status")
+    # token_status: TokenStatus = Field(..., description="Token status")
+    token_status: str = Field(default="active", description="Token status")  # Changed from TokenStatus enum to str
     created_at: datetime = Field(..., description="Token creation timestamp")
     expires_at: Optional[datetime] = Field(None, description="Token expiration date")
     metadata: Dict[str, Any] = Field(default={}, description="Token metadata")

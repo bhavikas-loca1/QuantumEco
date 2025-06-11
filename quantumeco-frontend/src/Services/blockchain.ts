@@ -88,3 +88,16 @@ export const getBlockchainExplorer = async () => {
   const response = await api.get('/api/blockchain/explorer');
   return response.data;
 };
+
+// Services/blockchain.ts - Add ETT token fetching
+
+export const getETTTokens = async (limit: number = 10): Promise<EnvironmentalTrustToken[]> => {
+  try {
+    const response = await api.get(`/api/blockchain/ett/tokens?limit=${limit}`);
+    return response.data.tokens;
+  } catch (error) {
+    console.error('Failed to get ETT tokens:', error);
+    return [];
+  }
+};
+
