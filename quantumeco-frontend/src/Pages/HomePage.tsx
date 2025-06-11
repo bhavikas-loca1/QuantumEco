@@ -46,7 +46,7 @@ const HomePage: React.FC = () => {
       {/* Hero Section */}
       <Box sx={{ textAlign: 'center', mb: 6 }}>
         <Typography variant="h2" sx={{ fontWeight: 'bold', mb: 2, color: 'primary.main' }}>
-          🚀 QuantumEco Intelligence
+           QuantumEco Intelligence
         </Typography>
         <Typography variant="h5" sx={{ mb: 3, color: 'text.secondary', maxWidth: 800, mx: 'auto' }}>
           Quantum-inspired logistics optimization with 25% cost reduction, 35% carbon savings, 

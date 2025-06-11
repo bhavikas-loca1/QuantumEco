@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
   Typography,
   Box,
   Button,
@@ -34,7 +33,7 @@ import {
   getHealthCheck,
   getWalmartImpactReport,
   formatApiError,
-} from '../../Services/api';
+} from '../../Services/api';// ✅ Fixed path
 import type {
   DashboardDataResponse,
   WalmartNYCResponse,
@@ -48,9 +47,9 @@ interface SystemStatus {
 }
 
 /**
- * Dashboard Component
+ * Dashboard Component - Full Width Version
  * Purpose: Main orchestrator that fetches and displays all dashboard data
- * Features: Auto-refresh, demo execution, system health monitoring, error handling
+ * Features: Full viewport width, auto-refresh, demo execution, system health monitoring
  */
 const Dashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<DashboardDataResponse | null>(null);
@@ -182,12 +181,21 @@ const Dashboard: React.FC = () => {
   };
 
   if (loading && !dashboardData) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner message="Loading dashboard..." />;
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
-      {/* Header Section */}
+    // ✅ FIXED: Full width container using Box instead of Container
+    <Box sx={{ 
+      width: '100%',
+      minHeight: '100vh',
+      maxWidth: '100vw',
+      px: { xs: 1, sm: 2, md: 3 }, // Responsive padding
+      py: 3,
+      overflow: 'hidden', // Prevent horizontal scroll
+      boxSizing: 'border-box'
+    }}>
+      {/* ✅ FIXED: Header Section - Full Width */}
       <Box
         sx={{
           display: 'flex',
@@ -196,9 +204,10 @@ const Dashboard: React.FC = () => {
           alignItems: { xs: 'flex-start', md: 'center' },
           mb: 4,
           gap: 2,
+          width: '100%', // Ensure full width
         }}
       >
-        <Box>
+        <Box sx={{ flex: 1 }}>
           <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 1 }}>
             🚀 QuantumEco Intelligence Dashboard
           </Typography>
@@ -271,7 +280,7 @@ const Dashboard: React.FC = () => {
       {error && (
         <Alert 
           severity="error" 
-          sx={{ mb: 3 }} 
+          sx={{ mb: 3, width: '100%' }} 
           onClose={() => setError(null)}
           icon={<WarningAmberOutlined />}
           action={
@@ -288,7 +297,7 @@ const Dashboard: React.FC = () => {
       {demoResult && (
         <Alert 
           severity="success" 
-          sx={{ mb: 3 }} 
+          sx={{ mb: 3, width: '100%' }} 
           onClose={() => setDemoResult(null)}
         >
           <Typography variant="h6" gutterBottom>
@@ -300,30 +309,31 @@ const Dashboard: React.FC = () => {
               flexDirection: { xs: 'column', md: 'row' },
               gap: 3,
               mt: 1,
+              flexWrap: 'wrap'
             }}
           >
             <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <AttachMoneyOutlined fontSize="small" color="success" />
-              <strong>Cost Saved:</strong> ${demoResult.savings_analysis.cost_saved_usd.toFixed(2)} 
-              ({demoResult.savings_analysis.cost_improvement_percent.toFixed(1)}% improvement)
+              <strong>Cost Saved:</strong> ${demoResult.savings_analysis?.cost_saved_usd?.toFixed(2) || '0'} 
+              ({demoResult.savings_analysis?.cost_improvement_percent?.toFixed(1) || '0'}% improvement)
             </Typography>
             <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Co2Outlined fontSize="small" color="success" />
-              <strong>Carbon Reduced:</strong> {demoResult.savings_analysis.carbon_saved_kg.toFixed(1)} kg CO₂ 
-              ({demoResult.savings_analysis.carbon_improvement_percent.toFixed(1)}% improvement)
+              <strong>Carbon Reduced:</strong> {demoResult.savings_analysis?.carbon_saved_kg?.toFixed(1) || '0'} kg CO₂ 
+              ({demoResult.savings_analysis?.carbon_improvement_percent?.toFixed(1) || '0'}% improvement)
             </Typography>
             <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <AccessTimeOutlined fontSize="small" color="primary" />
-              <strong>Time Saved:</strong> {demoResult.savings_analysis.time_saved_minutes.toFixed(1)} minutes
+              <strong>Time Saved:</strong> {demoResult.savings_analysis?.time_saved_minutes?.toFixed(1) || '0'} minutes
             </Typography>
           </Box>
         </Alert>
       )}
 
-      {/* Main Dashboard Content */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {/* ✅ FIXED: Main Dashboard Content - Full Width */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
         {/* KPI Cards Section */}
-        <Box>
+        <Box sx={{ width: '100%' }}>
           <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
             <AssessmentOutlined />
             Key Performance Indicators
@@ -334,22 +344,27 @@ const Dashboard: React.FC = () => {
           />
         </Box>
 
-        {/* Charts and Certificates Section */}
+        {/* ✅ FIXED: Charts and Activity Section - Full Width Responsive */}
         <Box
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', lg: 'row' },
             gap: 4,
+            width: '100%',
           }}
         >
           {/* Performance Analytics Section */}
-          <Box sx={{ flex: { xs: '1 1 100%', lg: '2 1 0' } }}>
+          <Box sx={{ 
+            flex: { xs: '1 1 100%', lg: '2 1 60%' }, 
+            minWidth: 0, // Allow flex shrinking
+            width: '100%'
+          }}>
             <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
               <TrendingUp />
               Performance Analytics
             </Typography>
-            <Card sx={{ height: '500px' }}>
-              <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Card sx={{ height: '500px', width: '100%' }}>
+              <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column', width: '100%' }}>
                 <Typography variant="h6" gutterBottom>
                   Optimization Trends & System Performance
                 </Typography>
@@ -360,7 +375,8 @@ const Dashboard: React.FC = () => {
                   alignItems: 'center', 
                   justifyContent: 'center',
                   flexDirection: 'column',
-                  gap: 2
+                  gap: 2,
+                  width: '100%'
                 }}>
                   <TrendingUp sx={{ fontSize: 64, color: 'primary.main', opacity: 0.6 }} />
                   <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center' }}>
@@ -381,7 +397,11 @@ const Dashboard: React.FC = () => {
           </Box>
 
           {/* Recent Activity Section */}
-          <Box sx={{ flex: { xs: '1 1 100%', lg: '1 1 0' } }}>
+          <Box sx={{ 
+            flex: { xs: '1 1 100%', lg: '1 1 40%' }, 
+            minWidth: 0, // Allow flex shrinking
+            width: '100%'
+          }}>
             <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
               <AssessmentOutlined />
               System Activity
@@ -393,8 +413,8 @@ const Dashboard: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Blockchain Certificates Section */}
-        <Box>
+        {/* ✅ FIXED: Blockchain Certificates Section - Full Width */}
+        <Box sx={{ width: '100%' }}>
           <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
             <Co2Outlined />
             Blockchain Verification & Environmental Impact
@@ -406,9 +426,9 @@ const Dashboard: React.FC = () => {
           />
         </Box>
 
-        {/* Walmart Scale Impact Section */}
+        {/* ✅ FIXED: Walmart Scale Impact Section - Full Width */}
         {walmartImpact && (
-          <Box>
+          <Box sx={{ width: '100%' }}>
             <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
               <AttachMoneyOutlined />
               Walmart Scale Impact Projection
@@ -416,6 +436,7 @@ const Dashboard: React.FC = () => {
             <Card
               sx={{
                 background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+                width: '100%'
               }}
             >
               <CardContent sx={{ p: 4 }}>
@@ -505,7 +526,7 @@ const Dashboard: React.FC = () => {
           </Box>
         )}
       </Box>
-    </Container>
+    </Box>
   );
 };
 
