@@ -255,12 +255,12 @@ async def demo_quick_start():
         "locations": 20,
         "vehicles": 3,
         "results": {
-            "traditional_method": {
+            "traditional": {
                 "total_cost": 372.8,
                 "total_carbon": 91.4,
                 "total_time": 1373.5
             },
-            "quantum_inspired_method": {
+            "quantum_inspired": {
                 "total_cost": 264.73,
                 "total_carbon": 63.44,
                 "total_time": 1074.3
@@ -307,15 +307,15 @@ async def demo_quick_start():
             "locations": 20,
             "vehicles": 3,
             "results": {
-                "traditional_method": {
-                    "total_cost": traditional_result["total_cost_usd"],
-                    "total_carbon": traditional_result["total_carbon_kg"],
-                    "total_time": traditional_result["total_time_minutes"]
+                "traditional": {
+                    "total_cost": traditional_result["total_cost"],
+                    "total_carbon": traditional_result["total_carbon"],
+                    "total_time": traditional_result["total_time"]
                 },
-                "quantum_inspired_method": {
-                    "total_cost": quantum_result["total_cost_usd"],
-                    "total_carbon": quantum_result["total_carbon_kg"],
-                    "total_time": quantum_result["total_time_minutes"]
+                "quantum_inspired": {
+                    "total_cost": quantum_result["total_cost"],
+                    "total_carbon": quantum_result["total_carbon"],
+                    "total_time": quantum_result["total_time"]
                 },
                 "improvements": {
                     "cost_saved": f"${savings['cost_saved_usd']:.2f} ({savings['cost_improvement_percent']:.1f}%)",
@@ -347,6 +347,7 @@ async def global_exception_handler(request, exc):
         content={
             "error": "Internal server error",
             "message": "An unexpected error occurred",
+            "log": str(exc),
             "timestamp": datetime.utcnow().isoformat()
         }
     )

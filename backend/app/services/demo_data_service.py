@@ -40,8 +40,9 @@ class DemoDataService:
     
     async def simulate_traditional_optimization(self, locations: List[Dict], vehicles: List[Dict]) -> Dict[str, Any]:
         """Simulate traditional optimization results (less efficient)"""
+        print(f"[DEBUG] Starting traditional optimization with {len(locations)} locations and {len(vehicles)} vehicles")
         try:
-            # Simulate processing time
+            print("[INFO] Simulating processing time...")
             await asyncio.sleep(random.uniform(1, 3))
             
             total_distance = 0
@@ -51,15 +52,18 @@ class DemoDataService:
             
             # Simple simulation - distribute locations evenly among vehicles
             locations_per_vehicle = len(locations) // len(vehicles)
+            print(f"[DEBUG] Calculated {locations_per_vehicle} locations per vehicle")
             
             routes = []
             for i, vehicle in enumerate(vehicles):
+                print(f"[DEBUG] Processing vehicle {i+1}/{len(vehicles)}")
                 start_idx = i * locations_per_vehicle
                 end_idx = start_idx + locations_per_vehicle
                 if i == len(vehicles) - 1:  # Last vehicle gets remaining locations
                     end_idx = len(locations)
                 
                 vehicle_locations = locations[start_idx:end_idx]
+                print(f"[INFO] Vehicle {i+1} assigned {len(vehicle_locations)} locations")
                 
                 # Calculate route metrics (simplified)
                 route_distance = len(vehicle_locations) * random.uniform(12, 20)  # km per delivery
@@ -73,56 +77,67 @@ class DemoDataService:
                 total_carbon += route_carbon
                 
                 routes.append({
+                    "route_id": f"trad_route_{i+1:03d}_{int(time.time())}",
                     "vehicle_id": vehicle.get("id", f"vehicle_{i+1}"),
                     "vehicle_type": vehicle.get("type", "diesel_truck"),
                     "locations": vehicle_locations,
                     "distance_km": round(route_distance, 2),
                     "time_minutes": round(route_time, 2),
-                    "fuel_cost_usd": round(route_cost, 2),
+                    "cost_usd": round(route_cost, 2),
                     "carbon_emissions_kg": round(route_carbon, 2),
                     "optimization_score": random.randint(65, 75)
                 })
             
+            print(f"[INFO] Optimization completed successfully. Total routes: {len(routes)}")
+            print(f"[DEBUG] Final metrics - Total Distance: {total_distance:.2f}km, Total Time: {total_time:.2f}min, "
+                  f"Total Cost: ${total_cost:.2f}, Total Carbon: {total_carbon:.2f}kg")
+            
             return {
-                "optimization_method": "traditional",
+                "method": "traditional",
                 "routes": routes,
-                "total_distance_km": round(total_distance, 2),
-                "total_time_minutes": round(total_time, 2),
-                "total_fuel_cost_usd": round(total_cost, 2),
-                "total_carbon_kg": round(total_carbon, 2),
-                "optimization_time_seconds": random.uniform(2, 5),
+                "total_distance": round(total_distance, 2),
+                "total_time": round(total_time, 2),
+                "total_cost": round(total_cost, 2),
+                "total_cost": round(total_cost, 2),
+                "total_carbon": round(total_carbon, 2),
+                "processing_time": random.uniform(2, 5),
                 "success_rate": 100
             }
             
         except Exception as e:
-            return {"error": str(e), "optimization_method": "traditional"}
+            print(f"[ERROR] Critical failure in traditional optimization: {str(e)}")
+            print(f"[ERROR] Stack trace: ", e.__traceback__)
+            return {"error": str(e), "method": "traditional"}
     
     async def simulate_quantum_optimization(self, locations: List[Dict], vehicles: List[Dict]) -> Dict[str, Any]:
         """Simulate quantum-inspired optimization results (more efficient)"""
+        print(f"[DEBUG] Starting quantum optimization with {len(locations)} locations and {len(vehicles)} vehicles")
         try:
-            # Simulate longer processing time for quantum algorithms
+            print("[INFO] Initializing quantum simulation processing time...")
             await asyncio.sleep(random.uniform(3, 8))
             
-            # Get traditional results first
+            print("[DEBUG] Fetching traditional optimization results as baseline...")
             traditional = await self.simulate_traditional_optimization(locations, vehicles)
+            print(f"[INFO] Traditional optimization baseline received with {len(traditional.get('routes', []))} routes")
             
-            # Apply quantum-inspired improvements
+            print("[DEBUG] Calculating quantum improvement factors...")
             improvement_factors = {
                 "distance": random.uniform(0.70, 0.80),    # 20-30% improvement
                 "time": random.uniform(0.68, 0.78),        # 22-32% improvement
-                "fuel_cost": random.uniform(0.70, 0.80),   # 20-30% improvement
+                "cost_usd": random.uniform(0.70, 0.80),   # 20-30% improvement
                 "carbon": random.uniform(0.60, 0.75)       # 25-40% improvement
             }
             
             routes = []
-            for route in traditional["routes"]:
+            for idx, route in enumerate(traditional["routes"]):
                 optimized_route = {
+                    "route_id": f"quantum_route_{int(time.time())}",
                     "vehicle_id": route["vehicle_id"],
                     "vehicle_type": route["vehicle_type"],
                     "locations": route["locations"],
                     "distance_km": round(route["distance_km"] * improvement_factors["distance"], 2),
                     "time_minutes": round(route["time_minutes"] * improvement_factors["time"], 2),
-                    "fuel_cost_usd": round(route["fuel_cost_usd"] * improvement_factors["fuel_cost"], 2),
+                    "cost_usd": round(route["cost_usd"] * improvement_factors["cost_usd"], 2),
                     "carbon_emissions_kg": round(route["carbon_emissions_kg"] * improvement_factors["carbon"], 2),
                     "quantum_improvement_score": random.randint(88, 97),
                     "optimization_score": random.randint(88, 97)
@@ -132,61 +147,80 @@ class DemoDataService:
             # Calculate totals
             total_distance = sum(route["distance_km"] for route in routes)
             total_time = sum(route["time_minutes"] for route in routes)
-            total_cost = sum(route["fuel_cost_usd"] for route in routes)
+            total_cost = sum(route["cost_usd"] for route in routes)
             total_carbon = sum(route["carbon_emissions_kg"] for route in routes)
             
             return {
-                "optimization_method": "quantum_inspired",
+                "method": "quantum_inspired",
                 "routes": routes,
-                "total_distance_km": round(total_distance, 2),
-                "total_time_minutes": round(total_time, 2),
-                "total_fuel_cost_usd": round(total_cost, 2),
-                "total_carbon_kg": round(total_carbon, 2),
-                "optimization_time_seconds": random.uniform(8, 15),
+                "total_distance": round(total_distance, 2),
+                "total_time": round(total_time, 2),
+                "total_cost": round(total_cost, 2),
+                "total_cost": round(total_cost, 2),
+                "total_carbon": round(total_carbon, 2),
+                "processing_time": random.uniform(8, 15),
                 "quantum_iterations": random.randint(50, 120),
                 "convergence_score": random.uniform(0.90, 0.98),
                 "quantum_improvement_score": random.randint(88, 97)
             }
             
         except Exception as e:
-            return {"error": str(e), "optimization_method": "quantum_inspired"}
+            return {"error": str(e), "method": "quantum_inspired"}
     
     async def run_custom_optimization(self, locations: List[Dict], vehicles: List[Dict], 
                                     optimization_goals: Dict[str, float], 
                                     include_weather: bool = True, 
                                     include_traffic: bool = True) -> Dict[str, Any]:
         """Run custom optimization with specified parameters"""
+        print(f"[DEBUG] Starting custom optimization with {len(locations)} locations and {len(vehicles)} vehicles")
+        print(f"[DEBUG] Optimization goals: {optimization_goals}")
+        print(f"[DEBUG] Weather included: {include_weather}, Traffic included: {include_traffic}")
+        
         try:
             # Simulate processing based on complexity
             complexity_factor = len(locations) * len(vehicles) / 100
             processing_time = min(20, max(5, complexity_factor))
+            print(f"[INFO] Calculated complexity factor: {complexity_factor:.2f}, processing time: {processing_time:.2f}s")
             await asyncio.sleep(min(3, processing_time * 0.2))
             
             # Base calculations
+            print("[DEBUG] Starting base calculations...")
             avg_distance_per_location = random.uniform(8, 25)
             total_base_distance = len(locations) * avg_distance_per_location
+            print(f"[DEBUG] Average distance per location: {avg_distance_per_location:.2f}km")
+            print(f"[DEBUG] Total base distance: {total_base_distance:.2f}km")
             
             # Apply optimization goals
+            print("[INFO] Applying optimization weights...")
             cost_weight = optimization_goals.get('cost', 0.4)
             carbon_weight = optimization_goals.get('carbon', 0.4)
             time_weight = optimization_goals.get('time', 0.2)
+            print(f"[DEBUG] Weights - Cost: {cost_weight}, Carbon: {carbon_weight}, Time: {time_weight}")
             
-            # Calculate optimization efficiency based on weights
+            # Calculate optimization efficiency
+            print("[INFO] Calculating efficiency factors...")
             efficiency_factor = 0.6 + (carbon_weight * 0.3) + (cost_weight * 0.2) + (time_weight * 0.1)
+            print(f"[DEBUG] Calculated efficiency factor: {efficiency_factor:.3f}")
             
             # Weather and traffic impacts
             weather_factor = 1.1 if include_weather else 1.0
             traffic_factor = 1.15 if include_traffic else 1.0
+            print(f"[DEBUG] Applied factors - Weather: {weather_factor}, Traffic: {traffic_factor}")
             
             # Calculate final metrics
+            print("[INFO] Computing final metrics...")
             total_distance = total_base_distance * efficiency_factor
-            total_time = total_distance * 3.5 * traffic_factor  # minutes
+            total_time = total_distance * 3.5 * traffic_factor
             total_cost = total_distance * 0.8 * weather_factor
             total_carbon = total_distance * 0.2 * efficiency_factor
+            print(f"[DEBUG] Final totals - Distance: {total_distance:.2f}km, Time: {total_time:.2f}min")
+            print(f"[DEBUG] Final totals - Cost: ${total_cost:.2f}, Carbon: {total_carbon:.2f}kg")
             
             # Generate routes
+            print("[INFO] Generating individual vehicle routes...")
             routes = []
             locations_per_vehicle = len(locations) // len(vehicles)
+            print(f"[DEBUG] Locations per vehicle: {locations_per_vehicle}")
             
             for i, vehicle in enumerate(vehicles):
                 start_idx = i * locations_per_vehicle
@@ -210,13 +244,14 @@ class DemoDataService:
                 })
             
             return {
-                "optimization_method": "custom_quantum_inspired",
+                "method": "custom_quantum_inspired",
                 "routes": routes,
-                "total_distance_km": round(total_distance, 2),
-                "total_time_minutes": round(total_time, 2),
-                "total_cost_usd": round(total_cost, 2),
-                "total_carbon_kg": round(total_carbon, 2),
-                "processing_time_seconds": round(processing_time, 2),
+                "total_distance": round(total_distance, 2),
+                "total_time": round(total_time, 2),
+                "total_cost": round(total_cost, 2),
+                "total_cost": round(total_cost, 2),
+                "total_carbon": round(total_carbon, 2),
+                "processing_time": round(processing_time, 2),
                 "optimization_goals_applied": optimization_goals,
                 "weather_included": include_weather,
                 "traffic_included": include_traffic,
@@ -224,4 +259,6 @@ class DemoDataService:
             }
             
         except Exception as e:
-            return {"error": str(e), "optimization_method": "custom"}
+            print(f"[ERROR] Critical failure in custom optimization: {str(e)}")
+            print(f"[ERROR] Stack trace: ", e.__traceback__)
+            return {"error": str(e), "method": "custom"}

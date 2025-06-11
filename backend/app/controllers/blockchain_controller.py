@@ -42,39 +42,38 @@ async def create_delivery_certificate(
     """
     Create blockchain-verified delivery certificate
     Stores delivery optimization results immutably on blockchain
- 
-    Test certificate creation:
-    
-    curl -X POST "http://localhost:8000/api/blockchain/certificate" \
-    -H "Content-Type: application/json" \
-    -d '{
-    "route_id": "test_route_001",
-    "vehicle_id": "truck_001",
-    "carbon_saved": 25.5,
-    "cost_saved": 150.0,
-    "distance_km": 100.0,
-    "optimization_score": 95
-    }'
-
     """
+    print(f"[CERTIFICATE] Starting certificate creation process for route {request.route_id}")
+    print(f"[CERTIFICATE] Input request data: {request.dict()}")
+    
     try:
-        # Validate input data
+        # Input validation
+        print("[CERTIFICATE] Validating input parameters...")
         if request.carbon_saved < 0:
+            print(f"[ERROR] Invalid carbon saved value: {request.carbon_saved}")
             raise HTTPException(status_code=400, detail="Carbon saved cannot be negative")
         
         if request.cost_saved < 0:
+            print(f"[ERROR] Invalid cost saved value: {request.cost_saved}")
             raise HTTPException(status_code=400, detail="Cost saved cannot be negative")
         
         if request.distance_km <= 0:
+            print(f"[ERROR] Invalid distance value: {request.distance_km}")
             raise HTTPException(status_code=400, detail="Distance must be greater than 0")
         
         if request.optimization_score < 0 or request.optimization_score > 100:
+            print(f"[ERROR] Invalid optimization score: {request.optimization_score}")
             raise HTTPException(status_code=400, detail="Optimization score must be between 0 and 100")
         
+        print("[CERTIFICATE] Input validation successful")
+
         # Generate certificate ID
+        print("[CERTIFICATE] Generating certificate ID...")
         certificate_id = generate_certificate_id()
-        
-        # Calculate verification hash
+        print(f"[CERTIFICATE] Generated certificate ID: {certificate_id}")
+
+        # Prepare certificate data
+        print("[CERTIFICATE] Preparing certificate data for blockchain...")
         certificate_data = {
             "route_id": request.route_id,
             "vehicle_id": request.vehicle_id,
@@ -84,28 +83,30 @@ async def create_delivery_certificate(
             "optimization_score": request.optimization_score,
             "timestamp": int(time.time())
         }
+        print(f"[CERTIFICATE] Certificate data prepared: {certificate_data}")
         
+        # Calculate verification hash
+        print("[CERTIFICATE] Calculating verification hash...")
         verification_hash = blockchain_service.calculate_verification_hash(certificate_data)
+        print(f"[CERTIFICATE] Generated verification hash: {verification_hash}")
+
+        # Create blockchain certificate
+        print("[CERTIFICATE] Initiating blockchain certificate creation...")
+        blockchain_data = {**certificate_data, "certificate_id": certificate_id, "verification_hash": verification_hash}
+        print(f"[CERTIFICATE] Sending data to blockchain: {blockchain_data}")
         
-        # Create certificate on blockchain
-        blockchain_result = await blockchain_service.create_delivery_certificate({
-            "certificate_id": certificate_id,
-            "route_id": request.route_id,
-            "vehicle_id": request.vehicle_id,
-            "carbon_saved": request.carbon_saved,
-            "cost_saved": request.cost_saved,
-            "distance_km": request.distance_km,
-            "optimization_score": request.optimization_score,
-            "verification_hash": verification_hash
-        })
-        
+        blockchain_result = await blockchain_service.create_delivery_certificate(blockchain_data)
+        print(f"[CERTIFICATE] Blockchain creation result: {blockchain_result}")
+
         if not blockchain_result.get("verified"):
-            raise HTTPException(
-                status_code=500, 
-                detail=f"Blockchain certificate creation failed: {blockchain_result.get('error', 'Unknown error')}"
-            )
-        
+            error_msg = f"Blockchain certificate creation failed: {blockchain_result.get('error', 'Unknown error')}"
+            print(f"[ERROR] {error_msg}")
+            raise HTTPException(status_code=500, detail=error_msg)
+
+        print("[CERTIFICATE] Certificate successfully created on blockchain")
+
         # Prepare response
+        print("[CERTIFICATE] Preparing API response...")
         response = CertificateDetailsResponse(
             certificate_id=certificate_id,
             route_id=request.route_id,
@@ -123,11 +124,14 @@ async def create_delivery_certificate(
             blockchain_network="ganache_local",
             certificate_status="verified"
         )
-        
-        # Cache the certificate
+        print(f"[CERTIFICATE] Response object created: {response.dict()}")
+
+        # Cache management
+        print("[CERTIFICATE] Updating certificate cache...")
         certificate_cache[certificate_id] = response.dict()
-        
-        # Store transaction details
+        print(f"[CERTIFICATE] Certificate cached. Total certificates in cache: {len(certificate_cache)}")
+
+        print("[CERTIFICATE] Updating transaction cache...")
         transaction_cache[blockchain_result["transaction_hash"]] = {
             "certificate_id": certificate_id,
             "transaction_type": "certificate_creation",
@@ -135,18 +139,28 @@ async def create_delivery_certificate(
             "gas_used": blockchain_result.get("gas_used", 0),
             "timestamp": datetime.utcnow()
         }
-        
-        # Store in database (background task)
+        print(f"[CERTIFICATE] Transaction cached. Total transactions in cache: {len(transaction_cache)}")
+
+        # Database storage
+        print("[CERTIFICATE] Scheduling database storage background task...")
         background_tasks.add_task(
             store_certificate_in_db,
             certificate_id,
             response.dict()
         )
-        
+        print(f"[CERTIFICATE] Background task scheduled for certificate {certificate_id}")
+
+        print("[CERTIFICATE] Certificate creation process completed successfully")
         return response
         
+    except HTTPException as he:
+        print(f"[ERROR] HTTP Exception in certificate creation: {str(he)}")
+        raise he
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Certificate creation failed: {str(e)}")
+        error_msg = f"Certificate creation failed: {str(e)}"
+        print(f"[ERROR] Unexpected error in certificate creation: {error_msg}")
+        print(f"[ERROR] Exception type: {type(e)}")
+        raise HTTPException(status_code=500, detail=error_msg)
 
 
 @router.get("/certificate/{certificate_id}", response_model=CertificateDetailsResponse)
@@ -452,43 +466,67 @@ async def get_blockchain_explorer_data():
     Blockchain explorer interface with network statistics
     """
     try:
-        # Get network statistics
+        print("[EXPLORER] Starting blockchain explorer data retrieval")
+        
+        print("[EXPLORER] Fetching network statistics...")
         network_stats = await blockchain_service.get_network_statistics()
+        print(f"[EXPLORER] Network stats retrieved: {network_stats}")
         
-        # Get recent blocks
+        print("[EXPLORER] Fetching recent blocks...")
         recent_blocks = await blockchain_service.get_recent_blocks(5)
+        print(f"[EXPLORER] Retrieved {len(recent_blocks)} recent blocks")
         
-        # Get recent transactions
+        print("[EXPLORER] Fetching recent transactions...") 
         recent_transactions = await blockchain_service.get_recent_transactions(10)
+        print(f"[EXPLORER] Retrieved {len(recent_transactions)} recent transactions")
         
-        # Calculate additional metrics
+        # Calculate metrics
         total_certificates = len(certificate_cache)
         total_transactions = len(transaction_cache)
+        print(f"[EXPLORER] Metrics calculated - Certificates: {total_certificates}, Transactions: {total_transactions}")
         
-        # Get gas price statistics
+        print("[EXPLORER] Fetching gas statistics...")
         gas_stats = await blockchain_service.get_gas_statistics()
+        print(f"[EXPLORER] Gas stats retrieved: {gas_stats}")
         
+        try:
+            total_carbon_saved = network_stats.get("total_carbon_saved", 0) / 1000
+            total_cost_saved = network_stats.get("total_cost_saved", 0) / 100
+            print(f"[EXPLORER] Calculated savings - Carbon: {total_carbon_saved}kg, Cost: ${total_cost_saved}")
+        except Exception as calc_error:
+            print(f"[ERROR] Failed to calculate savings: {str(calc_error)}")
+            total_carbon_saved = 0
+            total_cost_saved = 0
+            
+        print("[EXPLORER] Building response object...")
         response = BlockchainExplorerResponse(
             network_name="Ganache Local Network",
             network_id=network_stats.get("network_id", 1337),
             latest_block_number=network_stats.get("latest_block", 0),
             total_transactions=total_transactions,
             total_certificates=total_certificates,
-            total_carbon_saved_kg=network_stats.get("total_carbon_saved", 0) / 1000,
-            total_cost_saved_usd=network_stats.get("total_cost_saved", 0) / 100,
+            total_carbon_saved_kg=total_carbon_saved,
+            total_cost_saved_usd=total_cost_saved,
             average_gas_price=gas_stats.get("average_gas_price", 0),
             network_hash_rate=network_stats.get("hash_rate", 0),
             recent_blocks=recent_blocks,
             recent_transactions=recent_transactions,
-            node_count=1,  # Single node for demo
+            node_count=1,
             network_status="healthy",
             last_updated=datetime.utcnow()
         )
         
+        print("[EXPLORER] Response object created successfully")
+        print(f"[EXPLORER] Final response data: {response.dict()}")
+        
         return response
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get explorer data: {str(e)}")
+        error_msg = f"Failed to get explorer data: {str(e)}"
+        print(f"[ERROR] {error_msg}")
+        print(f"[ERROR] Exception type: {type(e)}")
+        print(f"[ERROR] Exception traceback: ", exc_info=True)
+        raise HTTPException(status_code=500, detail=error_msg)
 
 
 @router.post("/carbon-credit", response_model=CarbonCreditCreationResponse)

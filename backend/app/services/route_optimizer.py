@@ -312,8 +312,8 @@ class RouteOptimizer:
         
         # Randomly swap two locations in a random route (quantum superposition effect)
         if new_solution['optimized_routes']:
-            route_idx = random.randint(0, len(new_solution['optimized_routes']) - 1)
-            route = new_solution['optimized_routes'][route_idx]['route']
+            route_id = random.randint(0, len(new_solution['optimized_routes']) - 1)
+            route = new_solution['optimized_routes'][route_id]['route']
             
             if len(route) > 3:  # Need at least depot + 2 locations + depot
                 # Swap two non-depot locations
@@ -334,12 +334,12 @@ class RouteOptimizer:
         
         # 2-opt improvement on a random route
         if new_solution['optimized_routes']:
-            route_idx = random.randint(0, len(new_solution['optimized_routes']) - 1)
-            route = new_solution['optimized_routes'][route_idx]['route']
+            route_id = random.randint(0, len(new_solution['optimized_routes']) - 1)
+            route = new_solution['optimized_routes'][route_id]['route']
             
             if len(route) > 4:  # Need enough locations for 2-opt
                 improved_route = self._two_opt_improvement(route, data)
-                new_solution['optimized_routes'][route_idx]['route'] = improved_route
+                new_solution['optimized_routes'][route_id]['route'] = improved_route
                 new_solution = self._recalculate_route_metrics(new_solution, data)
         
         return new_solution
@@ -553,7 +553,7 @@ class RouteOptimizer:
             cached_data = self.optimization_cache[route_id]
             return {
                 'route_id': route_id,
-                'optimization_method': cached_data.get('method', 'quantum_inspired'),
+                'method': cached_data.get('method', 'quantum_inspired'),
                 'efficiency_score': cached_data.get('quantum_score', 90),
                 'cost_per_km': cached_data.get('cost_per_km', 0.85),
                 'carbon_per_km': cached_data.get('carbon_per_km', 0.2),
@@ -565,7 +565,7 @@ class RouteOptimizer:
         # Return default analytics
         return {
             'route_id': route_id,
-            'optimization_method': 'quantum_inspired',
+            'method': 'quantum_inspired',
             'efficiency_score': 88,
             'cost_per_km': 0.82,
             'carbon_per_km': 0.18,

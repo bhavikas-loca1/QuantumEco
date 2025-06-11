@@ -66,6 +66,15 @@ async def get_walmart_nyc_scenario():
         # Generate blockchain certificates
         certificates = generate_demo_certificates(quantum_result["routes"])
         
+        real_time_factors = {
+            "traffic_conditions": "moderate",
+            "weather_impact": "clear_conditions",
+            "road_closures": 0,
+            "peak_hour_factor": 1.15,
+            "seasonal_adjustment": 1.0,
+            "last_updated": datetime.utcnow().isoformat()
+        }
+        
         # Prepare response
         response_data = WalmartNYCResponse(
             scenario_id="walmart_nyc_demo_2025",
@@ -79,6 +88,7 @@ async def get_walmart_nyc_scenario():
             blockchain_certificates=certificates,
             environmental_impact=calculate_environmental_impact(savings_analysis["carbon_saved_kg"]),
             walmart_scale_projection=calculate_walmart_scale_projection(savings_analysis),
+            real_time_factors=real_time_factors,
             generated_at=datetime.utcnow()
         )
         
@@ -92,7 +102,6 @@ async def get_walmart_nyc_scenario():
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate Walmart NYC scenario: {str(e)}")
-
 
 @router.get("/scenarios", response_model=ScenarioListResponse)
 async def get_available_scenarios():
@@ -564,7 +573,7 @@ def generate_custom_vehicle_fleet(count: int, vehicle_types: List[str], capacity
 def calculate_performance_metrics(optimization_result: Dict) -> Dict[str, Any]:
     """Calculate performance metrics for optimization result"""
     return {
-        "optimization_time_seconds": optimization_result.get("processing_time", random.uniform(5, 15)),
+        "processing_time": optimization_result.get("processing_time", random.uniform(5, 15)),
         "efficiency_score": random.randint(85, 97),
         "cost_per_delivery": optimization_result["total_cost"] / len(optimization_result["routes"]),
         "carbon_per_delivery": optimization_result["total_carbon"] / len(optimization_result["routes"]),

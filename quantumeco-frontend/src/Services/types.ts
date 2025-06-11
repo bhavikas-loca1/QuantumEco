@@ -147,10 +147,10 @@ export interface OptimizedRoute {
   vehicle_type: VehicleType;
   locations: Location[];
   route_segments?: RouteSegment[];
-  total_distance_km: number;
-  total_time_minutes: number;
-  total_cost_usd: number;
-  total_carbon_kg: number;
+  total_distance: number;
+  total_time: number;
+  total_cost: number;
+  total_carbon: number;
   load_utilization_percent: number;
   route_geometry?: number[][];
   optimization_score: number;
@@ -177,13 +177,13 @@ export interface RouteOptimizationResponse {
   request_id?: string;
   status: OptimizationStatus;
   optimized_routes: OptimizedRoute[];
-  total_distance_km: number;
-  total_time_minutes: number;
-  total_cost_usd: number;
-  total_carbon_kg: number;
+  total_distance: number;
+  total_time: number;
+  total_cost: number;
+  total_carbon: number;
   savings_analysis?: SavingsAnalysis;
-  optimization_method: string;
-  optimization_time_seconds: number;
+  method: string;
+  processing_time: number;
   quantum_improvement_score?: number;
   certificates?: string[];
   created_at: string; // ISO string
@@ -340,12 +340,12 @@ export interface QuickDemoResponse {
   locations: number;
   vehicles: number;
   results: {
-    traditional_method: {
+    traditional: {
       total_cost: number;
       total_carbon: number;
       total_time: number;
     };
-    quantum_inspired_method: {
+    quantum_inspired: {
       total_cost: number;
       total_carbon: number;
       total_time: number;
@@ -431,7 +431,7 @@ export interface BatchOptimizationResponse {
   successful_optimizations: number;
   failed_optimizations: number;
   results: RouteOptimizationResponse[];
-  processing_time_seconds: number;
+  processing_time: number;
   best_scenario_id?: string;
 }
 
@@ -465,13 +465,13 @@ export interface SimulationRequest {
 
 export interface SimulationResponse {
   simulation_id: string;
-  total_cost_usd: number;
-  total_carbon_kg: number;
+  total_cost: number;
+  total_carbon: number;
   total_time_hours: number;
-  total_distance_km: number;
+  total_distance: number;
   vehicle_utilization_percent: number;
   quantum_improvement_percent: number;
-  processing_time_seconds: number;
+  processing_time: number;
   recommendations: string[];
 }
 // ===== Missing API Response Types Based on RouteOptimizer Implementation =====
@@ -619,7 +619,7 @@ export interface VehicleProfileResponse {
 // Additional helper types for RouteOptimizer integration
 export interface RouteAnalyticsResponse {
   route_id: string;
-  optimization_method: 'quantum_inspired' | 'traditional';
+  method: 'quantum_inspired' | 'traditional';
   efficiency_score: number;
   cost_per_km: number;
   carbon_per_km: number;

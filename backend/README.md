@@ -184,7 +184,7 @@ Dependencies: DemoDataService, Sample data generators
 
 API Endpoints:
 
-GET /api/demo/walmart-nyc - Pre-optimized Walmart NYC delivery scenario
+GET /demo/quick-start - Pre-optimized Walmart NYC delivery scenario
 
 GET /api/demo/scenarios - List of available demo scenarios
 

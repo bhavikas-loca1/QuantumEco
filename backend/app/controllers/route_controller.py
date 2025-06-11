@@ -24,6 +24,7 @@ from app.services.blockchain_service import BlockchainService
 from app.utils.helpers import generate_route_id, validate_coordinates
 from app.database import get_db
 from sqlalchemy.orm import Session
+import logging
 
 router = APIRouter()
 
@@ -134,7 +135,7 @@ async def optimize_routes(
             total_cost=optimization_result["total_cost"],
             total_carbon_emissions=total_carbon_emissions,
             savings_analysis=savings_analysis,
-            optimization_method="quantum_inspired",
+            method="quantum_inspired",
             optimization_time=round(time.time() - start_time, 2),
             quantum_improvement_score=optimization_result.get("quantum_score", 85),
             created_at=datetime.utcnow()
@@ -277,9 +278,18 @@ async def compare_routes(request: RouteComparisonRequest):
     Compare quantum-inspired vs traditional route optimization
     Shows the benefits of using quantum-inspired algorithms
     """
+    logger = logging.getLogger(__name__)
+    
     try:
+        logger.info(f"Starting route comparison with {len(request.locations)} locations and {len(request.vehicles)} vehicles")
         start_time = time.time()
         
+        # Log input data
+        logger.debug(f"Input locations: {[loc.dict() for loc in request.locations]}")
+        logger.debug(f"Input vehicles: {[veh.dict() for veh in request.vehicles]}")
+        logger.debug(f"Optimization goals: {request.optimization_goals}")
+        
+        logger.info("Initiating parallel optimization tasks")
         # Run both optimizations concurrently
         quantum_task = route_optimizer.optimize_multi_objective(
             locations=request.locations,
@@ -292,35 +302,57 @@ async def compare_routes(request: RouteComparisonRequest):
             vehicles=request.vehicles
         )
         
+        logger.info("Waiting for optimization tasks to complete")
         quantum_result, traditional_result = await asyncio.gather(
             quantum_task, traditional_task
         )
         
+        logger.info("Both optimizations completed, calculating carbon emissions")
+        logger.debug(f"Quantum result: {quantum_result}")
+        logger.debug(f"Traditional result: {traditional_result}")
+        
         # Calculate carbon emissions for both
-        quantum_carbon = await carbon_calculator.calculate_batch_emissions(
-            routes=quantum_result["optimized_routes"]
-        )
-        
-        traditional_carbon = await carbon_calculator.calculate_batch_emissions(
-            routes=traditional_result["routes"]
-        )
-        
-        # Calculate improvements
-        improvements = {
-            "cost_improvement": round(
-                ((traditional_result["total_cost"] - quantum_result["total_cost"]) / traditional_result["total_cost"]) * 100, 2
-            ),
-            "time_improvement": round(
-                ((traditional_result["total_time"] - quantum_result["total_time"]) / traditional_result["total_time"]) * 100, 2
-            ),
-            "distance_improvement": round(
-                ((traditional_result["total_distance"] - quantum_result["total_distance"]) / traditional_result["total_distance"]) * 100, 2
-            ),
-            "carbon_improvement": round(
-                ((traditional_carbon["total_emissions"] - quantum_carbon["total_emissions"]) / traditional_carbon["total_emissions"]) * 100, 2
+        try:
+            quantum_carbon = await carbon_calculator.calculate_batch_emissions(
+                routes=quantum_result["optimized_routes"]
             )
-        }
+            logger.debug(f"Quantum carbon calculation complete: {quantum_carbon}")
+        except Exception as e:
+            logger.error(f"Error calculating quantum carbon emissions: {str(e)}")
+            raise
         
+        try:
+            traditional_carbon = await carbon_calculator.calculate_batch_emissions(
+                routes=traditional_result["routes"]
+            )
+            logger.debug(f"Traditional carbon calculation complete: {traditional_carbon}")
+        except Exception as e:
+            logger.error(f"Error calculating traditional carbon emissions: {str(e)}")
+            raise
+        
+        logger.info("Calculating improvements between methods")
+        # Calculate improvements
+        try:
+            improvements = {
+                "cost_improvement": round(
+                    ((traditional_result["total_cost"] - quantum_result["total_cost"]) / traditional_result["total_cost"]) * 100, 2
+                ),
+                "time_improvement": round(
+                    ((traditional_result["total_time"] - quantum_result["total_time"]) / traditional_result["total_time"]) * 100, 2
+                ),
+                "distance_improvement": round(
+                    ((traditional_result["total_distance"] - quantum_result["total_distance"]) / traditional_result["total_distance"]) * 100, 2
+                ),
+                "carbon_improvement": round(
+                    ((traditional_carbon["total_emissions"] - quantum_carbon["total_emissions"]) / traditional_carbon["total_emissions"]) * 100, 2
+                )
+            }
+            logger.info(f"Calculated improvements: {improvements}")
+        except Exception as e:
+            logger.error(f"Error calculating improvements: {str(e)}")
+            raise
+        
+        logger.info("Preparing response data")
         response = RouteComparisonResponse(
             comparison_id=generate_route_id("comp"),
             quantum_inspired_result={
@@ -347,9 +379,12 @@ async def compare_routes(request: RouteComparisonRequest):
             created_at=datetime.utcnow()
         )
         
+        logger.info(f"Route comparison completed successfully in {response.total_comparison_time} seconds")
+        logger.debug(f"Final response: {response.dict()}")
         return response
         
     except Exception as e:
+        logger.error(f"Route comparison failed with error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Route comparison failed: {str(e)}")
 
 

@@ -117,12 +117,12 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                   icon={<CheckCircleOutlined />}
                 />
                 <Chip 
-                  label={`${optimizationResult.optimization_time_seconds.toFixed(1)}s`} 
+                  label={`${optimizationResult.processing_time.toFixed(1)}s`} 
                   variant="outlined" 
                   icon={<AccessTimeOutlined />}
                 />
                 <Chip 
-                  label={optimizationResult.optimization_method || 'quantum_inspired'} 
+                  label={optimizationResult.method || 'quantum_inspired'} 
                   variant="outlined" 
                   color="secondary"
                 />
@@ -144,7 +144,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                     <AttachMoneyOutlined />
                   </Avatar>
                   <Typography variant="h4" color="success.main" sx={{ fontWeight: 'bold' }}>
-                    {formatCurrency(optimizationResult.total_cost_usd)}
+                    {formatCurrency(optimizationResult.total_cost)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Total Cost
@@ -158,7 +158,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                     <Co2Outlined />
                   </Avatar>
                   <Typography variant="h4" color="info.main" sx={{ fontWeight: 'bold' }}>
-                    {optimizationResult.total_carbon_kg.toFixed(1)} kg
+                    {optimizationResult.total_carbon.toFixed(1)} kg
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Carbon Emissions
@@ -172,7 +172,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                     <AccessTimeOutlined />
                   </Avatar>
                   <Typography variant="h4" color="warning.main" sx={{ fontWeight: 'bold' }}>
-                    {formatDuration(optimizationResult.total_time_minutes)}
+                    {formatDuration(optimizationResult.total_time)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Total Time
@@ -186,7 +186,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                     <RouteOutlined />
                   </Avatar>
                   <Typography variant="h4" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                    {formatDistance(optimizationResult.total_distance_km)}
+                    {formatDistance(optimizationResult.total_distance)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Total Distance

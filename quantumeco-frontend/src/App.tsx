@@ -146,8 +146,8 @@ function App() {
                 
                 {/* ✅ Demo Hub - Primary demo presentation */}
                 <Route path="/demo" element={<DemoPage />} />
-                <Route path="/demo/walmart-nyc" element={<WalmartDemo />} />
-                <Route path="/demo/quick" element={<QuickDemo />} />
+                <Route path="/api/demo/walmart-nyc" element={<WalmartDemo />} />
+                <Route path="/api/demo/quick" element={<QuickDemo />} />
                 
                 {/* ✅ Core Dashboard */}
                 <Route path="/dashboard" element={<DashboardPage />} />
