@@ -15,11 +15,31 @@ from datetime import datetime, timedelta
 
 from .contract_interface import ContractInterface
 from .web3_utils import Web3Utils
-from . import DEFAULT_CONFIG, CONTRACT_ADDRESSES
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Package-level configuration
+DEFAULT_CONFIG = {
+    "ganache_url": "http://127.0.0.1:8545",
+    "api_port": 8546,
+    "gas_limit": 300000,
+    "gas_price": 20000000000,  # 20 Gwei
+    "chain_id": 1337,  # Ganache default
+    "confirmation_blocks": 1,
+    "timeout": 60
+}
+
+# Contract addresses (will be updated after deployment)
+CONTRACT_ADDRESSES = {
+    "delivery_verification": None,
+    "environmental_trust_token": None,
+    "carbon_credit_token": None
+}
+
+# ABI cache for contract interfaces
+ABI_CACHE = {}
 
 class BlockchainService:
     """

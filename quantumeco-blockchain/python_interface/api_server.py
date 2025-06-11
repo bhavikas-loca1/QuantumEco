@@ -13,11 +13,10 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 from flask import Flask, request, jsonify
-from flask.config import CORS
+from flask_cors import CORS
 import threading
 
-from .blockchain_service import BlockchainService
-from . import initialize_blockchain_interface, get_health_status
+from .blockchain_service import ABI_CACHE, BlockchainService, DEFAULT_CONFIG, CONTRACT_ADDRESSES
 
 # Configure logging
 logging.basicConfig(
@@ -29,6 +28,48 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)  # Enable CORS for cross-origin requests
+
+def initialize_blockchain_interface(config=None):
+    """Initialize the blockchain interface with custom configuration"""
+    global DEFAULT_CONFIG
+    if config:
+        DEFAULT_CONFIG.update(config)
+    
+    print(f"🚀 QuantumEco Blockchain Interface initialized")
+    print(f"📡 Ganache URL: {DEFAULT_CONFIG['ganache_url']}")
+    print(f"🔌 API Port: {DEFAULT_CONFIG['api_port']}")
+    
+    return DEFAULT_CONFIG
+
+def get_health_status():
+    """Get overall health status of blockchain interface"""
+    try:
+        service = BlockchainService()
+        return {
+            "status": "healthy",
+            "version": 1,
+            "ganache_connected": service.is_connected(),
+            "contracts_loaded": len(ABI_CACHE) > 0,
+            "api_running": True
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "version": 1,
+            "error": str(e)
+        }
+
+# Export all main components
+__all__ = [
+    "BlockchainService",
+    "ContractInterface", 
+    "Web3Utils",
+    "blockchain_api",
+    "initialize_blockchain_interface",
+    "get_health_status",
+    "DEFAULT_CONFIG",
+    "CONTRACT_ADDRESSES"
+]
 
 # Global blockchain service instance
 blockchain_service = None

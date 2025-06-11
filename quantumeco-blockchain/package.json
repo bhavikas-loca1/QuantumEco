@@ -8,12 +8,19 @@
     "compile": "truffle compile"
   },
   "dependencies": {
-    "@truffle/contract": "^4.7.1",
     "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "ganache": "^7.9.0",
     "truffle": "^5.11.3",
-    "truffle-plugin-verify": "^0.7.1"
-  }
+    "truffle-plugin-verify": "^0.6.7",
+    "@openzeppelin/contracts": "^4.9.0"
+  },
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }
