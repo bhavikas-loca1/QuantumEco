@@ -421,35 +421,68 @@ def seed_vehicle_profiles():
 
 def check_database_health() -> dict:
     """Check database connectivity and health"""
+    print("\n=== Starting Database Health Check ===")
     try:
+        print("🔄 Establishing database connection...")
         db = get_db_session()
         
         # Test basic connectivity
+        print("🔄 Testing database connectivity...")
         db.execute(text('SELECT 1'))
+        print("✅ Database connection successful")
         
         # Get table counts
-        table_counts = {
-            "delivery_records": db.query(DeliveryRecord).count(),
-            "route_optimizations": db.query(RouteOptimization).count(),
-            "carbon_calculations": db.query(CarbonCalculation).count(),
-            "blockchain_certificates": db.query(BlockchainCertificate).count(),
-            "vehicle_profiles": db.query(VehicleProfile).count()
-        }
+        print("\n🔄 Collecting table statistics...")
+        table_counts = {}
+        
+        print("   📊 Counting delivery_records...")
+        table_counts["delivery_records"] = db.query(DeliveryRecord).count()
+        
+        print("   📊 Counting route_optimizations...")
+        table_counts["route_optimizations"] = db.query(RouteOptimization).count()
+        
+        print("   📊 Counting carbon_calculations...")
+        table_counts["carbon_calculations"] = db.query(CarbonCalculation).count()
+        
+        print("   📊 Counting blockchain_certificates...")
+        table_counts["blockchain_certificates"] = db.query(BlockchainCertificate).count()
+        
+        print("   📊 Counting vehicle_profiles...")
+        table_counts["vehicle_profiles"] = db.query(VehicleProfile).count()
+        
+        total_records = sum(table_counts.values())
+        print(f"\n✅ Health check complete - Found {total_records} total records")
         
         db.close()
+        print("✅ Database connection closed properly")
         
-        return {
+        database_url = settings.database_url_to_use.split("@")[-1] if "@" in settings.database_url_to_use else settings.database_url_to_use
+        print(f"📍 Database URL: {database_url}")
+        
+        result = {
             "status": "healthy",
-            "database_url": settings.database_url_to_use.split("@")[-1] if "@" in settings.database_url_to_use else settings.database_url_to_use,
+            "database_url": database_url,
             "table_counts": table_counts,
-            "total_records": sum(table_counts.values())
+            "total_records": total_records
         }
+        print("\n=== Health Check Results ===")
+        print(f"Status: {result['status']}")
+        print("Table counts:")
+        for table, count in table_counts.items():
+            print(f"   {table}: {count}")
+        
+        return result
         
     except Exception as e:
+        print(f"\n❌ Database health check failed!")
+        print(f"❌ Error: {str(e)}")
+        database_url = settings.database_url_to_use.split("@")[-1] if "@" in settings.database_url_to_use else settings.database_url_to_use
+        print(f"📍 Database URL: {database_url}")
+        
         return {
             "status": "unhealthy",
             "error": str(e),
-            "database_url": settings.database_url_to_use.split("@")[-1] if "@" in settings.database_url_to_use else settings.database_url_to_use
+            "database_url": database_url
         }
 
 # ===== Utility Functions =====

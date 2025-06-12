@@ -163,42 +163,84 @@ async def root():
 @app.get("/health", tags=["System"])
 async def health_check():
     """Comprehensive health check for all services"""
+    logger.info("🔍 Starting comprehensive health check...")
     try:
         # Check database
+        logger.info("📊 Checking database health...")
         db_health = check_database_health()
+        logger.info(f"Database health status: {db_health['status']}")
+        if db_health['status'] != 'healthy':
+            logger.warning(f"Database health issues detected: {db_health.get('details', 'No details provided')}")
         
         # Check all services
+        logger.info("🔧 Checking service health...")
+        
+        # Route optimizer check
+        logger.info("Checking route optimizer...")
+        route_health = await route_optimizer.health_check()
+        logger.info(f"Route optimizer status: {route_health}")
+        
+        # Carbon calculator check
+        logger.info("Checking carbon calculator...")
+        carbon_health = await carbon_calculator.health_check()
+        logger.info(f"Carbon calculator status: {carbon_health}")
+        
+        # Analytics service check
+        logger.info("Checking analytics service...")
+        analytics_health = await analytics_service.health_check()
+        logger.info(f"Analytics service status: {analytics_health}")
+        
         services_health = {
-            "route_optimizer": await route_optimizer.health_check(),
-            "carbon_calculator": await carbon_calculator.health_check(),
-            "analytics_service": await analytics_service.health_check(),
+            "route_optimizer": route_health,
+            "carbon_calculator": carbon_health,
+            "analytics_service": analytics_health,
         }
         
+        # Blockchain service check
+        logger.info("⛓️ Checking blockchain connection...")
         blockchain_health = await blockchain_service.test_connection()
+        logger.info(f"Blockchain service status: {blockchain_health}")
         
         # Determine overall health
+        logger.info("📊 Evaluating overall system health...")
         all_healthy = (
             db_health["status"] == "healthy" and
             all("healthy" in str(status) for status in services_health.values()) and 
             ("connected" in str(blockchain_health) or "healthy" in str(blockchain_health))
-            )
-        return {
-            "status": "healthy" if all_healthy else "degraded",
+        )
+        
+        status = "healthy" if all_healthy else "degraded"
+        logger.info(f"Overall system status: {status}")
+        
+        response_data = {
+            "status": status,
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "database": db_health,
             "services": services_health,
+            "blockchain": blockchain_health,
             "uptime": "operational",
             "version": settings.PROJECT_VERSION
         }
+        
+        logger.info("✅ Health check completed successfully")
+        logger.debug(f"Detailed health check response: {response_data}")
+        return response_data
          
     except Exception as e:
-        logger.error(f"Health check failed: {str(e)}")
+        error_msg = f"Health check failed: {str(e)}"
+        logger.error(error_msg)
+        logger.exception("Detailed error traceback:")
         return JSONResponse(
             status_code=503,
             content={
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
+                "details": {
+                    "error_type": type(e).__name__,
+                    "error_location": "health_check endpoint",
+                    "stack_trace": str(e.__traceback__)
+                }
             }
         )
 
