@@ -22,7 +22,7 @@ from app.schemas.blockchain_schemas import (
     CarbonCreditCreationResponse
 )
 from app.services.blockchain_service import BlockchainService
-from app.utility.helpers import generate_certificate_id, validate_ethereum_address
+from app.utils.helpers import generate_certificate_id, validate_ethereum_address
 from app.database import get_db
 from sqlalchemy.orm import Session
 

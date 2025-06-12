@@ -18,7 +18,7 @@ from app.schemas.carbon_schemas import (
     CarbonPredictionResponse
 )
 from app.services.carbon_calculator import CarbonCalculator
-from app.utility.helpers import validate_date_format, generate_calculation_id
+from app.utils.helpers import validate_date_format, generate_calculation_id
 from app.database import get_db
 from sqlalchemy.orm import Session
 

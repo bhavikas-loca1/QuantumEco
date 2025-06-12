@@ -1,8 +1,11 @@
 backend/venv/
-backend/app/
+backend/app/__pycache__/
 backend/quantumeco.db
 quantumeco-blockchain/venv/
 quantumeco-blockchain/build/contracts/
 quantumeco-blockchain/node_modules/
 quantumeco-blockchain/python_interface/__pycache__/
-
+backend/app/controllers/__pycache__/
+backend/app/schemas/__pycache__/
+backend/app/services/__pycache__/
+backend/app/utils/__pycache__/

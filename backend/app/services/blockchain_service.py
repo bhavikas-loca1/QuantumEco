@@ -8,7 +8,7 @@ import asyncio
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from eth_account import Account
-from app.utility.web3_utils import Web3Utils
+from backend.app.utils.web3_utils import Web3Utils
 
 
 DEFAULT_CONFIG = {

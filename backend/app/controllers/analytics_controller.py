@@ -22,7 +22,7 @@ from app.schemas.analytics_schemas import (
     RecentActivity
 )
 from app.services.analytics_service import AnalyticsService
-from app.utility.helpers import validate_date_range, calculate_percentage_change
+from app.utils.helpers import validate_date_range, calculate_percentage_change
 from app.database import get_db
 from sqlalchemy.orm import Session
 

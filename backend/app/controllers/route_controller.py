@@ -22,7 +22,7 @@ from app.schemas.route_schemas import (
 from app.services.route_optimizer import RouteOptimizer
 from app.services.carbon_calculator import CarbonCalculator
 from app.services.blockchain_service import BlockchainService
-from app.utility.helpers import generate_route_id, validate_coordinates
+from app.utils.helpers import generate_route_id, validate_coordinates
 from app.database import get_db
 from sqlalchemy.orm import Session
 import logging
