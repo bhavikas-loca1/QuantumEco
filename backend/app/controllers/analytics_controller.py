@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, Query
 from typing import List, Dict, Any, Optional
 import asyncio
@@ -220,7 +221,7 @@ async def get_performance_metrics():
 
 
 @router.get("/walmart/impact", response_model=WalmartImpactResponse)
-async def get_walmart_impact_report():
+async def get_walmart_impact_report(db: Session = Depends(get_db)):
     """
     Walmart-specific impact report with projections
     Provides enterprise-scale impact analysis and ROI calculations
@@ -246,8 +247,8 @@ async def get_walmart_impact_report():
         
         # Annual projections
         annual_cost_savings = daily_cost_savings * 365
-        annual_carbon_savings = daily_carbon_savings * 365
-        annual_time_savings = daily_time_savings * 365
+        annual_carbon_savings = daily_carbon_savings * 365  # kg
+        annual_time_savings = daily_time_savings * 365      # minutes
         
         # ROI calculation
         implementation_cost = 350_000_000  # $350M over 3 years
@@ -255,36 +256,49 @@ async def get_walmart_impact_report():
         roi_percent = ((annual_benefits - (implementation_cost / 3)) / (implementation_cost / 3)) * 100
         
         # Environmental equivalents
-        environmental_equivalents = calculate_environmental_equivalents(annual_carbon_savings)
         
-        # Market impact
-        market_impact = {
-            "industry_leadership_value": 2_000_000_000,  # $2B brand value increase
-            "competitive_advantage_duration_years": 5,
-            "market_share_increase_percent": 2.5,
-            "customer_satisfaction_increase_percent": 12
+        environmental_equivalents = calculate_environmental_equivalents(annual_carbon_savings)
+        trees_equivalent = annual_carbon_savings / 22  # 22kg CO2 per tree per year
+        cars_off_road = annual_carbon_savings / 4600   # 4.6 tons CO2 per car per year
+        
+        environmental_equivalents = {
+            "trees_planted_equivalent": round(trees_equivalent, 0),
+            "cars_off_road_equivalent": round(cars_off_road, 0),
+            "homes_powered_days": round(annual_carbon_savings / 16, 0),  # 16kg CO2 per home per day
+            "miles_not_driven": round(annual_carbon_savings * 2.31, 0)   # 0.43kg CO2 per mile
         }
         
-        response = WalmartImpactResponse(
-            annual_cost_savings_usd=annual_cost_savings,
-            annual_carbon_reduction_kg=annual_carbon_savings,
-            annual_time_savings_hours=annual_time_savings / 60,  # Convert minutes to hours
-            roi_percent=roi_percent,
-            payback_period_months=round((implementation_cost / 3) / (annual_benefits / 12), 1),
-            implementation_cost_usd=implementation_cost,
-            stores_impacted=walmart_stores,
-            daily_deliveries_optimized=total_daily_deliveries,
-            environmental_equivalents=environmental_equivalents,
-            market_impact=market_impact,
-            confidence_level=0.92,
-            projection_basis="pilot_data_extrapolation",
-            generated_at=datetime.utcnow()
-        )
+        # Market impact projections
+        market_impact = {
+            "industry_leadership_value_usd": 2_000_000_000,  # $2B brand value
+            "competitive_advantage_years": 5,
+            "market_share_increase_percent": 2.5,
+            "customer_satisfaction_increase_percent": 12,
+            "sustainability_score_improvement": 25
+        }
         
+        response = {
+            "annual_cost_savings_usd": round(annual_cost_savings, 2),
+            "annual_carbon_reduction_kg": round(annual_carbon_savings, 2),
+            "annual_time_savings_hours": round(annual_time_savings / 60, 2),
+            "roi_percent": round(roi_percent, 2),
+            "payback_period_months": round((implementation_cost / 3) / (annual_benefits / 12), 1),
+            "implementation_cost_usd": implementation_cost,
+            "stores_impacted": walmart_stores,
+            "daily_deliveries_optimized": total_daily_deliveries,
+            "environmental_equivalents": environmental_equivalents,
+            "market_impact": market_impact,
+            "confidence_level": 0.92,
+            "projection_basis": "pilot_data_extrapolation",
+            "generated_at": datetime.utcnow()
+        }
+        
+        logging.info(f"Walmart impact report generated successfully: ${annual_cost_savings:,.0f} annual savings")
         return response
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get Walmart impact report: {str(e)}")
+        logging.error(f"Failed to generate Walmart impact report: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate Walmart impact report: {str(e)}")
 
 
 @router.post("/simulate", response_model=SimulationResults)
