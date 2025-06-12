@@ -293,7 +293,7 @@ async def demo_quick_start():
         logger.info("🎯 Generating quick demo scenario...")
         
         # Generate a quick NYC demo scenario
-        from app.utils.demo_data import demo_generator
+        from app.utility.demo_data import demo_generator
         scenario = demo_generator.generate_walmart_nyc_scenario(20, 3)  # Smaller for quick demo
         
         # Extract key metrics for impressive display

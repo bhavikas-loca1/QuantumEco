@@ -18,7 +18,7 @@ from app.schemas.demo_schemas import (
     LocationData
 )
 from app.services.demo_data_service import DemoDataService
-from app.utils.helpers import generate_demo_id, calculate_distance
+from app.utility.helpers import generate_demo_id, calculate_distance
 from app.database import get_db
 from sqlalchemy.orm import Session
 

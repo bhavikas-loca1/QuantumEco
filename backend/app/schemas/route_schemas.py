@@ -456,6 +456,7 @@ class BatchOptimizationRequest(BaseModel):
     scenarios: List[RouteOptimizationRequest] = Field(..., min_items=1, max_items=10, description="List of optimization scenarios")
     parallel_processing: bool = Field(default=True, description="Enable parallel processing of scenarios")
     compare_results: bool = Field(default=True, description="Compare results across scenarios")
+    
 class RouteOptimizationResponse(BaseModel):
     optimization_id: str
     status: str = "completed"
