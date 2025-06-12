@@ -472,7 +472,7 @@ class RouteOptimizationResponse(BaseModel):
     created_at: datetime
     
     class Config:
-        allow_population_by_field_name = True
+        validate_by_name = True
         
 class RouteComparisonRequest(BaseModel):
     """Request for comparing different optimization methods"""

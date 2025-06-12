@@ -631,20 +631,34 @@ class RouteOptimizer:
     
     async def health_check(self) -> str:
         """Health check for the route optimizer service."""
+        print("[HealthCheck] Starting health check for route optimizer service...")
         try:
-            # Test basic functionality
+            # Test basic functionality with sample data
+            print("[HealthCheck] Creating test data with 2 locations and 1 vehicle")
             test_locations = [
                 {'latitude': 40.7128, 'longitude': -74.0060, 'demand_kg': 0},
                 {'latitude': 40.7589, 'longitude': -73.9851, 'demand_kg': 10}
             ]
             test_vehicles = [{'capacity_kg': 100, 'cost_per_km': 0.8, 'emission_factor': 0.2}]
             
+            print("[HealthCheck] Attempting to create data model...")
             data = self.create_data_model(test_locations, test_vehicles)
+            print(f"[HealthCheck] Data model created successfully. Matrix size: {len(data['distance_matrix'])}")
             
             if data and len(data['distance_matrix']) == 2:
+                print("[HealthCheck] Health check passed: Data model properly initialized")
+                print("[HealthCheck] Distance matrix structure verified")
+                print("[HealthCheck] Service status: HEALTHY")
                 return "healthy"
             else:
+                print(f"[HealthCheck] WARNING: Unexpected data model structure")
+                print(f"[HealthCheck] Expected matrix size: 2, Got: {len(data['distance_matrix']) if data else 'None'}")
+                print("[HealthCheck] Service status: DEGRADED")
                 return "degraded"
                 
         except Exception as e:
+            print(f"[HealthCheck] ERROR: Health check failed with exception")
+            print(f"[HealthCheck] Exception details: {str(e)}")
+            print(f"[HealthCheck] Exception type: {type(e).__name__}")
+            print("[HealthCheck] Service status: UNHEALTHY")
             return f"unhealthy: {str(e)}"

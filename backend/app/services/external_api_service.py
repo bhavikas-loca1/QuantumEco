@@ -403,45 +403,62 @@ class ExternalAPIService:
     
     async def health_check(self) -> Dict[str, str]:
         """Check health of external API services"""
+        print("[HealthCheck] Starting health check of external services...")
         health_status = {}
         
         # Check OpenRouteService
+        print("[HealthCheck] Checking OpenRouteService API...")
         if settings.OPENROUTESERVICE_API_KEY:
             try:
                 # Simple test request
                 test_coords = [(40.7128, -74.0060), (40.7589, -73.9851)]
                 result = await self.get_route_matrix(test_coords)
                 health_status['openrouteservice'] = 'healthy' if result else 'degraded'
-            except Exception:
+                print(f"[HealthCheck] OpenRouteService status: {health_status['openrouteservice']}")
+            except Exception as e:
                 health_status['openrouteservice'] = 'unhealthy'
+                print(f"[HealthCheck] OpenRouteService error: {str(e)}")
         else:
             health_status['openrouteservice'] = 'not_configured'
+            print("[HealthCheck] OpenRouteService API key not configured")
         
         # Check OpenWeatherMap
+        print("[HealthCheck] Checking OpenWeatherMap API...")
         if settings.OPENWEATHER_API_KEY:
             try:
                 result = await self.get_weather_data(40.7128, -74.0060)
                 health_status['openweathermap'] = 'healthy' if result else 'degraded'
-            except Exception:
+                print(f"[HealthCheck] OpenWeatherMap status: {health_status['openweathermap']}")
+            except Exception as e:
                 health_status['openweathermap'] = 'unhealthy'
+                print(f"[HealthCheck] OpenWeatherMap error: {str(e)}")
         else:
             health_status['openweathermap'] = 'not_configured'
+            print("[HealthCheck] OpenWeatherMap API key not configured")
         
         # Check Google Maps
+        print("[HealthCheck] Checking Google Maps API...")
         if settings.GOOGLE_MAPS_API_KEY:
             try:
                 result = await self.geocode_address("New York, NY")
                 health_status['google_maps'] = 'healthy' if result else 'degraded'
-            except Exception:
+                print(f"[HealthCheck] Google Maps status: {health_status['google_maps']}")
+            except Exception as e:
                 health_status['google_maps'] = 'unhealthy'
+                print(f"[HealthCheck] Google Maps error: {str(e)}")
         else:
             health_status['google_maps'] = 'not_configured'
+            print("[HealthCheck] Google Maps API key not configured")
         
+        print(f"[HealthCheck] Complete health status: {health_status}")
         return health_status
     
     def clear_cache(self):
         """Clear the API cache"""
+        print("[Cache] Clearing API cache...")
+        cache_size = len(self.cache)
         self.cache.clear()
+        print(f"[Cache] Cleared {cache_size} items from cache")
 
 # Global instance for easy access
 external_api_service = ExternalAPIService()

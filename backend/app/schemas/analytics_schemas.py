@@ -161,7 +161,7 @@ class MarketImpact(BaseModel):
     competitive_advantage_duration_years: int = Field(..., description="Competitive advantage duration")
     market_share_increase_percent: float = Field(..., description="Market share increase percentage")
     customer_satisfaction_increase_percent: float = Field(..., description="Customer satisfaction increase")
-    brand_value_increase_usd: float = Field(..., description="Brand value increase")
+    brand_value_increase_usd: float = Field(..., description="Brand value increase in USD")
 
 class WalmartImpactResponse(BaseModel):
     """Walmart-specific impact report with projections"""

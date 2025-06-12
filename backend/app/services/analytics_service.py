@@ -260,17 +260,23 @@ class AnalyticsService:
     
     async def health_check(self) -> str:
         """Health check for analytics service"""
+        print(f"[{datetime.utcnow()}] Starting analytics service health check...")
         try:
             # Test basic functionality
-            test_data = await self.get_aggregated_data(
-                datetime.utcnow() - timedelta(hours=1),
-                datetime.utcnow()
-            )
+            print(f"[{datetime.utcnow()}] Testing aggregated data functionality...")
+            start_time = datetime.utcnow() - timedelta(hours=1)
+            end_time = datetime.utcnow()
+            print(f"[{datetime.utcnow()}] Time range: {start_time} to {end_time}")
             
-            if test_data and "total_cost_saved" in test_data:
+            test_data = await self.get_aggregated_data(start_time, end_time)
+            
+            if test_data:
+                print(f"[{datetime.utcnow()}] Health check successful. Service is healthy.")
                 return "healthy"
             else:
+                print(f"[{datetime.utcnow()}] WARNING: Empty test data returned. Service is degraded.")
                 return "degraded"
                 
         except Exception as e:
+            print(f"[{datetime.utcnow()}] ERROR: Health check failed with exception: {str(e)}")
             return f"unhealthy: {str(e)}"

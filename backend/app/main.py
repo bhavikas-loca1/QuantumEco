@@ -190,7 +190,7 @@ async def health_check():
             "uptime": "operational",
             "version": settings.PROJECT_VERSION
         }
-        
+         
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
         return JSONResponse(

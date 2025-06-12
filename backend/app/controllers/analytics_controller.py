@@ -10,6 +10,7 @@ import random
 
 from app.schemas.analytics_schemas import (
     DashboardDataResponse,
+    MarketImpact,
     SavingsSummaryResponse,
     PerformanceMetricsResponse,
     WalmartImpactResponse,
@@ -247,8 +248,8 @@ async def get_walmart_impact_report(db: Session = Depends(get_db)):
         
         # Annual projections
         annual_cost_savings = daily_cost_savings * 365
-        annual_carbon_savings = daily_carbon_savings * 365  # kg
-        annual_time_savings = daily_time_savings * 365      # minutes
+        annual_carbon_savings = daily_carbon_savings * 365
+        annual_time_savings = daily_time_savings * 365
         
         # ROI calculation
         implementation_cost = 350_000_000  # $350M over 3 years
@@ -256,42 +257,42 @@ async def get_walmart_impact_report(db: Session = Depends(get_db)):
         roi_percent = ((annual_benefits - (implementation_cost / 3)) / (implementation_cost / 3)) * 100
         
         # Environmental equivalents
-        
-        environmental_equivalents = calculate_environmental_equivalents(annual_carbon_savings)
         trees_equivalent = annual_carbon_savings / 22  # 22kg CO2 per tree per year
         cars_off_road = annual_carbon_savings / 4600   # 4.6 tons CO2 per car per year
         
         environmental_equivalents = {
             "trees_planted_equivalent": round(trees_equivalent, 0),
             "cars_off_road_equivalent": round(cars_off_road, 0),
-            "homes_powered_days": round(annual_carbon_savings / 16, 0),  # 16kg CO2 per home per day
-            "miles_not_driven": round(annual_carbon_savings * 2.31, 0)   # 0.43kg CO2 per mile
+            "homes_powered_days": round(annual_carbon_savings / 16, 0),
+            "miles_not_driven": round(annual_carbon_savings * 2.31, 0)
         }
         
-        # Market impact projections
-        market_impact = {
-            "industry_leadership_value_usd": 2_000_000_000,  # $2B brand value
-            "competitive_advantage_years": 5,
-            "market_share_increase_percent": 2.5,
-            "customer_satisfaction_increase_percent": 12,
-            "sustainability_score_improvement": 25
-        }
+        # ✅ FIX: Create MarketImpact object with correct field names
+        market_impact = MarketImpact(
+            industry_leadership_value=2_000_000_000,  # ✅ Correct field name
+            competitive_advantage_duration_years=5,   # ✅ Correct field name
+            market_share_increase_percent=2.5,
+            customer_satisfaction_increase_percent=12,
+            sustainability_score_improvement=25,
+            brand_value_increase_usd=2_000_000_000    # ✅ Add missing field
+        )
         
-        response = {
-            "annual_cost_savings_usd": round(annual_cost_savings, 2),
-            "annual_carbon_reduction_kg": round(annual_carbon_savings, 2),
-            "annual_time_savings_hours": round(annual_time_savings / 60, 2),
-            "roi_percent": round(roi_percent, 2),
-            "payback_period_months": round((implementation_cost / 3) / (annual_benefits / 12), 1),
-            "implementation_cost_usd": implementation_cost,
-            "stores_impacted": walmart_stores,
-            "daily_deliveries_optimized": total_daily_deliveries,
-            "environmental_equivalents": environmental_equivalents,
-            "market_impact": market_impact,
-            "confidence_level": 0.92,
-            "projection_basis": "pilot_data_extrapolation",
-            "generated_at": datetime.utcnow()
-        }
+        # ✅ FIX: Create response using Pydantic model constructor
+        response = WalmartImpactResponse(
+            annual_cost_savings_usd=round(annual_cost_savings, 2),
+            annual_carbon_reduction_kg=round(annual_carbon_savings, 2),
+            annual_time_savings_hours=round(annual_time_savings / 60, 2),
+            roi_percent=round(roi_percent, 2),
+            payback_period_months=round((implementation_cost / 3) / (annual_benefits / 12), 1),
+            implementation_cost_usd=implementation_cost,
+            stores_impacted=walmart_stores,
+            daily_deliveries_optimized=total_daily_deliveries,
+            environmental_equivalents=environmental_equivalents,
+            market_impact=market_impact,  # ✅ Use Pydantic model
+            confidence_level=0.92,
+            projection_basis="pilot_data_extrapolation",
+            generated_at=datetime.utcnow()
+        )
         
         logging.info(f"Walmart impact report generated successfully: ${annual_cost_savings:,.0f} annual savings")
         return response
@@ -299,7 +300,6 @@ async def get_walmart_impact_report(db: Session = Depends(get_db)):
     except Exception as e:
         logging.error(f"Failed to generate Walmart impact report: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to generate Walmart impact report: {str(e)}")
-
 
 @router.post("/simulate", response_model=SimulationResults)
 async def run_optimization_simulation(

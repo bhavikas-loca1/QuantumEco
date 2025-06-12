@@ -695,19 +695,27 @@ class CarbonCalculator:
     async def health_check(self) -> str:
         """Health check for the carbon calculator service."""
         try:
+            print("[HealthCheck] Starting carbon calculator service health check...")
+            
             # Test basic calculation
             test_route = {
                 'distance_km': 10,
                 'load_factor': 1.0,
                 'weather_conditions': {'condition': 'clear', 'temperature': 20}
             }
+            print(f"[HealthCheck] Testing with route data: {test_route}")
             
             result = await self.calculate_route_emissions(test_route, 'diesel_truck')
+            print(f"[HealthCheck] Calculation result: {result}")
             
             if result and 'total_emissions' in result and result['total_emissions'] > 0:
+                print("[HealthCheck] Service is healthy - calculations working correctly")
                 return "healthy"
             else:
+                print("[HealthCheck] Service is degraded - invalid calculation results")
                 return "degraded"
                 
         except Exception as e:
+            print(f"[HealthCheck] ERROR: Service health check failed with exception: {str(e)}")
+            print(f"[HealthCheck] Exception traceback: {traceback.format_exc()}")
             return f"unhealthy: {str(e)}"
