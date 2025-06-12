@@ -24,8 +24,7 @@ import BlockchainVerification from './BlockchainVerification';
 import ETTDisplay from './ETTDisplay';
 import CarbonCreditDisplay from './CarbonCreditDisplay';
 import { getRecentCertificates } from '../../Services/api';
-import type { ETTToken } from './ETTDisplay'; // ✅ Use shared interface
-
+import type { ETTToken } from './ETTDisplay';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -48,17 +47,13 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-/**
- * CertificateViewer Component
- * Purpose: Main blockchain certificates and verification interface
- * Features: Certificate management, blockchain status, ETT tokens, carbon credits
- */
 const CertificateViewer: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
   const [certificates, setCertificates] = useState<any[]>([]);
-  const [ettTokens, setEttTokens] = useState<ETTToken[]>([]); 
+  const [ettTokens, setEttTokens] = useState<ETTToken[]>([]);
   const [carbonCredits, setCarbonCredits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadCertificateData();
@@ -67,16 +62,18 @@ const CertificateViewer: React.FC = () => {
   const loadCertificateData = async () => {
     try {
       setLoading(true);
-      const certs = await getRecentCertificates(10);
-      setCertificates(certs);
+      setError(null);
       
-      // Mock ETT tokens and carbon credits for demo
+      const certs = await getRecentCertificates(10);
+      setCertificates(certs || []);
+      
+      // ✅ FIXED: Sample ETT tokens with proper data structure
       setEttTokens([
         {
           token_id: 1001,
-          route_id: 'demo_route_001',
+          route_id: 'walmart_nyc_demo_2025',
           trust_score: 94,
-          carbon_impact_kg: 42.3,
+          carbon_impact_kg: 44.7,
           sustainability_rating: 91,
           created_at: new Date().toISOString(),
         },
@@ -87,15 +84,25 @@ const CertificateViewer: React.FC = () => {
           carbon_impact_kg: 35.7,
           sustainability_rating: 88,
           created_at: new Date().toISOString(),
+        },
+        {
+          token_id: 1003,
+          route_id: 'demo_route_003',
+          trust_score: 92,
+          carbon_impact_kg: 52.1,
+          sustainability_rating: 95,
+          created_at: new Date().toISOString(),
         }
       ]);
 
       setCarbonCredits([
         {
           credit_id: 5001,
-          route_id: 'demo_route_001',
-          carbon_amount_kg: 42.3,
-          value_usd: 105.75,
+          route_id: 'walmart_nyc_demo_2025',
+          carbon_amount_kg: 44.7,
+          value_usd: 111.75,
+          vintage_year: 2025,
+          status: 'verified',
           created_at: new Date().toISOString(),
         },
         {
@@ -103,11 +110,19 @@ const CertificateViewer: React.FC = () => {
           route_id: 'demo_route_002',
           carbon_amount_kg: 35.7,
           value_usd: 89.25,
+          vintage_year: 2025,
+          status: 'verified',
           created_at: new Date().toISOString(),
         }
       ]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load certificate data:', error);
+      setError(`Failed to load data: ${error.message || 'Unknown error'}`);
+      
+      // ✅ FIXED: Set empty arrays as fallback
+      setCertificates([]);
+      setEttTokens([]);
+      setCarbonCredits([]);
     } finally {
       setLoading(false);
     }
@@ -118,40 +133,41 @@ const CertificateViewer: React.FC = () => {
   };
 
   const handleCertificateCreated = (newCertificate: any) => {
-    setCertificates(prev => [newCertificate, ...prev]);
+    console.log('New certificate created:', newCertificate);
     
-    // Add corresponding ETT and carbon credit
+    // ✅ FIXED: Safe certificate handling
     if (newCertificate.certificate) {
-      const ett = {
-        token_id: Math.floor(Math.random() * 1000000),
-        route_id: newCertificate.certificate.route_id,
-        trust_score: newCertificate.certificate.optimization_score || 90,
-        carbon_impact_kg: newCertificate.certificate.carbon_saved_kg || 0,
-        sustainability_rating: (newCertificate.certificate.optimization_score || 90) + 2,
-        created_at: new Date().toISOString(),
-      };
-      setEttTokens(prev => [ett, ...prev]);
-
-      const credit = {
-        credit_id: Math.floor(Math.random() * 1000000),
-        route_id: newCertificate.certificate.route_id,
-        carbon_amount_kg: newCertificate.certificate.carbon_saved_kg || 0,
-        value_usd: (newCertificate.certificate.carbon_saved_kg || 0) * 2.5,
-        created_at: new Date().toISOString(),
-      };
-      setCarbonCredits(prev => [credit, ...prev]);
+      setCertificates(prev => [newCertificate.certificate, ...prev]);
     }
+    
+    // Add corresponding ETT token
+    if (newCertificate.ettToken) {
+      setEttTokens(prev => [newCertificate.ettToken, ...prev]);
+    }
+
+    // Add corresponding carbon credit
+    if (newCertificate.carbonCredit) {
+      setCarbonCredits(prev => [newCertificate.carbonCredit, ...prev]);
+    }
+
+    // ✅ FIXED: Auto-switch to Network Status tab to show the new certificate
+    setTabValue(1);
   };
 
-  // Sample route data for demo
-  const sampleRouteData = {
-    route_id: `live_demo_${Date.now()}`,
-    vehicle_id: 'walmart_truck_001',
-    carbon_saved: 42.3,
-    cost_saved: 156.75,
-    distance_km: 125.4,
-    optimization_score: 94,
+  // ✅ FIXED: Better route data with validation
+  const generateSampleRouteData = () => {
+    const timestamp = Date.now();
+    return {
+      route_id: `walmart_nyc_demo_${timestamp}`,
+      vehicle_id: 'walmart_truck_001',
+      carbon_saved: 44.7,
+      cost_saved: 131.79,
+      distance_km: 125.4,
+      optimization_score: 94, // Integer value to prevent 422 errors
+    };
   };
+
+  const sampleRouteData = generateSampleRouteData();
 
   return (
     <Container maxWidth="xl" sx={{ py: 3 }}>
@@ -161,7 +177,7 @@ const CertificateViewer: React.FC = () => {
           🔗 Blockchain Certificate Management
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Manage blockchain certificates, Environmental Trust Tokens, and carbon credits
+          Manage blockchain certificates, Environmental Trust Tokens, and carbon credits with live demo capabilities
         </Typography>
         
         <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -182,6 +198,13 @@ const CertificateViewer: React.FC = () => {
           />
         </Box>
       </Box>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
 
       {/* Demo Alert */}
       <Alert severity="info" sx={{ mb: 3 }}>
@@ -230,6 +253,16 @@ const CertificateViewer: React.FC = () => {
             Generate blockchain certificates in real-time during your presentation. 
             Perfect for the 30-second blockchain segment of your demo.
           </Typography>
+          
+          {/* ✅ FIXED: Show current route data being used */}
+          <Alert severity="info" sx={{ mb: 3 }}>
+            <Typography variant="body2">
+              <strong>Demo Route Data:</strong> {sampleRouteData.route_id} | 
+              Carbon: {sampleRouteData.carbon_saved} kg CO₂ | 
+              Cost: ${sampleRouteData.cost_saved} | 
+              Score: {sampleRouteData.optimization_score}
+            </Typography>
+          </Alert>
           
           <LiveCertificateGenerator 
             routeData={sampleRouteData}
@@ -311,6 +344,13 @@ const CertificateViewer: React.FC = () => {
               onClick={() => setTabValue(3)}
             >
               View Carbon Credits
+            </Button>
+            <Button 
+              variant="text" 
+              onClick={loadCertificateData}
+              disabled={loading}
+            >
+              {loading ? 'Refreshing...' : 'Refresh Data'}
             </Button>
           </Box>
         </CardContent>

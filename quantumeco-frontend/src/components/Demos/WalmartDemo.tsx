@@ -33,25 +33,25 @@ import {
   getHealthCheck,
   getBlockchainExplorer,
   compareOptimizationMethods,
-} from '../../Services/api'; // ✅ Using your exact path
+} from '../../Services/api';
 
 /**
- * WalmartDemo Component - Complete 3-minute hackathon demo
- * Purpose: Execute full demo flow following video guide script
- * Features: Matches backend demo service structure from paste-3.txt
+ * WalmartDemo Component - COMPLETELY FIXED with null safety
+ * Purpose: Execute full demo flow with comprehensive error handling
+ * Features: Safe property access, loading states, fallback data
  */
 const WalmartDemo: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [autoPlay, setAutoPlay] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // ✅ FIXED: All state variables properly defined (no more unused warnings)
+  // Data states
   const [walmartNYCData, setWalmartNYCData] = useState<any>(null);
   const [healthData, setHealthData] = useState<any>(null);
   const [optimizationResults, setOptimizationResults] = useState<any>(null);
   const [routeData, setRouteData] = useState<any>(null);
   
-  // ✅ FIXED: Separate loading states to prevent conflicts
+  // Loading states
   const [initialLoading, setInitialLoading] = useState(false);
   const [healthLoading, setHealthLoading] = useState(false);
   const [optimizationLoading, setOptimizationLoading] = useState(false);
@@ -73,7 +73,6 @@ const WalmartDemo: React.FC = () => {
     { label: 'Potential 1% Savings', value: '$42,000,000', icon: <AttachMoney /> }
   ];
 
-  // ✅ DEMO_LOCATIONS: Matches backend paste-3.txt structure
   const DEMO_LOCATIONS = [
     { 
       id: 'depot', 
@@ -137,7 +136,6 @@ const WalmartDemo: React.FC = () => {
     },
   ];
 
-  // ✅ DEMO_VEHICLES: Matches backend paste-3.txt structure  
   const DEMO_VEHICLES = [
     { 
       id: 'walmart_vehicle_1', 
@@ -161,14 +159,26 @@ const WalmartDemo: React.FC = () => {
     }
   ];
 
-  // ✅ FIXED: All useEffect hooks at the TOP LEVEL (never conditional)
-  
-  // Initial data loading
+  // ✅ FIXED: Safe number formatting utility
+  const safeToFixed = (value: any, decimals: number = 2): string => {
+    if (value === null || value === undefined || typeof value !== 'number' || isNaN(value)) {
+      return '0';
+    }
+    return value.toFixed(decimals);
+  };
+
+  const safeRound = (value: any): number => {
+    if (value === null || value === undefined || typeof value !== 'number' || isNaN(value)) {
+      return 0;
+    }
+    return Math.round(value);
+  };
+
+  // All useEffect hooks at the top level
   useEffect(() => {
     loadWalmartNYCData();
   }, []);
 
-  // Auto-play functionality
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (autoPlay && currentStep < DEMO_STEPS.length - 1) {
@@ -179,35 +189,31 @@ const WalmartDemo: React.FC = () => {
     return () => clearTimeout(interval);
   }, [currentStep, autoPlay]);
 
-  // ✅ FIXED: Health check when step 1 is reached (no hooks in render functions)
   useEffect(() => {
     if (currentStep === 1 && !healthData && !healthLoading) {
       checkAllSystems();
     }
   }, [currentStep, healthData, healthLoading]);
 
-  // ✅ FIXED: Optimization when step 2 is reached (no hooks in render functions)
   useEffect(() => {
     if (currentStep === 2 && !optimizationResults && !optimizationLoading) {
       runLiveOptimization();
     }
   }, [currentStep, optimizationResults, optimizationLoading]);
 
-  // ✅ Load Walmart NYC data from backend (matches paste-3.txt response)
   const loadWalmartNYCData = async () => {
     try {
       setInitialLoading(true);
       const data = await getWalmartNYCDemo();
       setWalmartNYCData(data);
       
-      // ✅ Prepare route data for blockchain demo (matches backend structure)
       setRouteData({
-        route_id: data.scenario_id || `live_demo_${Date.now()}`,
+        route_id: data?.scenario_id || `live_demo_${Date.now()}`,
         vehicle_id: 'walmart_truck_001',
-        carbon_saved: data.savings_analysis?.carbon_saved_kg || 42.3,
-        cost_saved: data.savings_analysis?.cost_saved_usd || 156.75,
+        carbon_saved: data?.savings_analysis?.carbon_saved_kg || 42.3,
+        cost_saved: data?.savings_analysis?.cost_saved_usd || 156.75,
         distance_km: 125.4,
-        optimization_score: data.savings_analysis?.efficiency_score || 94,
+        optimization_score: data?.savings_analysis?.efficiency_score || 94,
       });
       
       console.log('✅ Walmart NYC data loaded:', data);
@@ -215,7 +221,6 @@ const WalmartDemo: React.FC = () => {
       console.error('Failed to load Walmart NYC data:', error);
       setError('Demo data loading failed - using fallback data');
       
-      // ✅ Fallback route data
       setRouteData({
         route_id: `fallback_demo_${Date.now()}`,
         vehicle_id: 'walmart_truck_001',
@@ -229,7 +234,6 @@ const WalmartDemo: React.FC = () => {
     }
   };
 
-  // ✅ FIXED: Health check function (moved out of render functions)
   const checkAllSystems = async () => {
     setHealthLoading(true);
     try {
@@ -241,7 +245,6 @@ const WalmartDemo: React.FC = () => {
       console.log('✅ Health check completed:', { health, blockchain });
     } catch (error) {
       console.error('Health check failed:', error);
-      // ✅ Fallback health data
       setHealthData({ 
         health: { status: 'healthy' }, 
         blockchain: { network_id: 1337 } 
@@ -251,7 +254,6 @@ const WalmartDemo: React.FC = () => {
     }
   };
 
-  // ✅ FIXED: Optimization function (moved out of render functions)
   const runLiveOptimization = async () => {
     setOptimizationLoading(true);
     try {
@@ -260,7 +262,6 @@ const WalmartDemo: React.FC = () => {
       console.log('✅ Optimization completed:', comparison);
     } catch (error) {
       console.error('Optimization failed, using mock data:', error);
-      // ✅ Mock results matching backend structure
       setOptimizationResults({
         traditional_result: { total_cost: 847.50, total_carbon: 142.3, total_time: 420 },
         quantum_inspired_result: { total_cost: 635.25, total_carbon: 92.4, total_time: 302 },
@@ -269,7 +270,7 @@ const WalmartDemo: React.FC = () => {
           carbon_improvement_percent: 35.1, 
           time_improvement_percent: 28.1 
         },
-        winner: 'quantum_inspired' as const
+        winner: 'quantum_inspired'
       });
     } finally {
       setOptimizationLoading(false);
@@ -296,7 +297,6 @@ const WalmartDemo: React.FC = () => {
     }
   };
 
-  // ✅ Step 1: Problem Introduction (30 seconds)
   const renderIntroStep = () => (
     <Box sx={{ textAlign: 'center', py: 4 }}>
       <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2, color: 'primary.main' }}>
@@ -333,7 +333,6 @@ const WalmartDemo: React.FC = () => {
     </Box>
   );
 
-  // ✅ FIXED: Step 2: System Health Check - NO useEffect inside
   const renderHealthStep = () => (
     <Box sx={{ textAlign: 'center', py: 4 }}>
       <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
@@ -376,7 +375,7 @@ const WalmartDemo: React.FC = () => {
     </Box>
   );
 
-  // ✅ FIXED: Step 3: Live Optimization - NO useEffect inside
+  // ✅ COMPLETELY FIXED: Safe optimization step rendering
   const renderOptimizationStep = () => (
     <Box sx={{ py: 4 }}>
       <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
@@ -391,21 +390,27 @@ const WalmartDemo: React.FC = () => {
         <LoadingSpinner message="Running optimization comparison..." />
       ) : optimizationResults ? (
         <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
-          {/* Traditional Results */}
+          {/* Traditional Results - COMPLETELY SAFE */}
           <Card sx={{ minWidth: 300 }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary' }}>
                 Traditional Routing
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography>Cost: ${optimizationResults.traditional_result.total_cost.toFixed(2)}</Typography>
-                <Typography>Carbon: {optimizationResults.traditional_result.total_carbon.toFixed(1)} kg CO₂</Typography>
-                <Typography>Time: {Math.round(optimizationResults.traditional_result.total_time)} minutes</Typography>
+                <Typography>
+                  Cost: ${safeToFixed(optimizationResults?.traditional_result?.total_cost)}
+                </Typography>
+                <Typography>
+                  Carbon: {safeToFixed(optimizationResults?.traditional_result?.total_carbon, 1)} kg CO₂
+                </Typography>
+                <Typography>
+                  Time: {safeRound(optimizationResults?.traditional_result?.total_time)} minutes
+                </Typography>
               </Box>
             </CardContent>
           </Card>
 
-          {/* Quantum Results */}
+          {/* Quantum Results - COMPLETELY SAFE */}
           <Card sx={{ minWidth: 300, bgcolor: 'success.50', border: '2px solid', borderColor: 'success.main' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -413,21 +418,39 @@ const WalmartDemo: React.FC = () => {
                 <Chip label="WINNER" color="success" size="small" />
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography>Cost: ${optimizationResults.quantum_inspired_result.total_cost.toFixed(2)}</Typography>
-                <Typography>Carbon: {optimizationResults.quantum_inspired_result.total_carbon.toFixed(1)} kg CO₂</Typography>
-                <Typography>Time: {Math.round(optimizationResults.quantum_inspired_result.total_time)} minutes</Typography>
+                <Typography>
+                  Cost: ${safeToFixed(optimizationResults?.quantum_inspired_result?.total_cost)}
+                </Typography>
+                <Typography>
+                  Carbon: {safeToFixed(optimizationResults?.quantum_inspired_result?.total_carbon, 1)} kg CO₂
+                </Typography>
+                <Typography>
+                  Time: {safeRound(optimizationResults?.quantum_inspired_result?.total_time)} minutes
+                </Typography>
               </Box>
             </CardContent>
           </Card>
 
-          {/* Improvements */}
+          {/* Improvements - COMPLETELY SAFE */}
           <Card sx={{ minWidth: 300, bgcolor: 'primary.50' }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>Quantum Improvements</Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Chip label={`${optimizationResults.improvements.cost_improvement_percent.toFixed(1)}% Cost Reduction`} color="success" icon={<TrendingUp />} />
-                <Chip label={`${optimizationResults.improvements.carbon_improvement_percent.toFixed(1)}% Carbon Reduction`} color="success" icon={<TrendingUp />} />
-                <Chip label={`${optimizationResults.improvements.time_improvement_percent.toFixed(1)}% Time Reduction`} color="success" icon={<TrendingUp />} />
+                <Chip 
+                  label={`${safeToFixed(optimizationResults?.improvements?.cost_improvement_percent, 1)}% Cost Reduction`} 
+                  color="success" 
+                  icon={<TrendingUp />} 
+                />
+                <Chip 
+                  label={`${safeToFixed(optimizationResults?.improvements?.carbon_improvement_percent, 1)}% Carbon Reduction`} 
+                  color="success" 
+                  icon={<TrendingUp />} 
+                />
+                <Chip 
+                  label={`${safeToFixed(optimizationResults?.improvements?.time_improvement_percent, 1)}% Time Reduction`} 
+                  color="success" 
+                  icon={<TrendingUp />} 
+                />
               </Box>
             </CardContent>
           </Card>
@@ -442,19 +465,20 @@ const WalmartDemo: React.FC = () => {
 
       {optimizationResults && (
         <Typography variant="h5" sx={{ textAlign: 'center', mt: 4, color: 'success.main', fontWeight: 'bold' }}>
-          🎉 25% Cost Reduction • 35% Carbon Reduction • 28% Time Saved
+          🎉 {safeToFixed(optimizationResults?.improvements?.cost_improvement_percent, 0)}% Cost Reduction • 
+          {safeToFixed(optimizationResults?.improvements?.carbon_improvement_percent, 0)}% Carbon Reduction • 
+          {safeToFixed(optimizationResults?.improvements?.time_improvement_percent, 0)}% Time Saved
         </Typography>
       )}
     </Box>
   );
 
-  // Step 4: Carbon Impact (20 seconds)
   const renderCarbonStep = () => {
     const carbonSaved = walmartNYCData?.savings_analysis?.carbon_saved_kg || 49.9;
     const environmentalEquivalents = {
-      trees_planted: (carbonSaved / 21.77).toFixed(1),
-      car_free_days: (carbonSaved / 12.6).toFixed(1),
-      home_hours: (carbonSaved / 0.83).toFixed(0),
+      trees_planted: safeToFixed(carbonSaved / 21.77, 1),
+      car_free_days: safeToFixed(carbonSaved / 12.6, 1),
+      home_hours: safeToFixed(carbonSaved / 0.83, 0),
     };
 
     return (
@@ -464,7 +488,7 @@ const WalmartDemo: React.FC = () => {
         </Typography>
 
         <Typography variant="h5" sx={{ mb: 4, color: 'success.main' }}>
-          {carbonSaved} kg CO₂ Saved = Real Environmental Impact
+          {safeToFixed(carbonSaved, 1)} kg CO₂ Saved = Real Environmental Impact
         </Typography>
 
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mb: 4, flexWrap: 'wrap' }}>
@@ -508,7 +532,6 @@ const WalmartDemo: React.FC = () => {
     );
   };
 
-  // Step 5: Blockchain Demo (30 seconds) - Uses your existing BlockchainDemo component
   const renderBlockchainStep = () => (
     <BlockchainDemo 
       routeData={routeData}
@@ -516,14 +539,13 @@ const WalmartDemo: React.FC = () => {
     />
   );
 
-  // Step 6: Performance Showcase (20 seconds) - Uses backend data
   const renderShowcaseStep = () => {
     const walmartScaleMetrics = {
       annual_savings: walmartNYCData?.walmart_scale_projection?.annual_cost_savings_usd 
-        ? `$${(walmartNYCData.walmart_scale_projection.annual_cost_savings_usd / 1000000000).toFixed(1)}B`
+        ? `$${safeToFixed(walmartNYCData.walmart_scale_projection.annual_cost_savings_usd / 1000000000, 1)}B`
         : '$1.58B',
       carbon_reduction: walmartNYCData?.walmart_scale_projection?.annual_carbon_reduction_tons
-        ? `${(walmartNYCData.walmart_scale_projection.annual_carbon_reduction_tons / 1000000).toFixed(1)}M tons`
+        ? `${safeToFixed(walmartNYCData.walmart_scale_projection.annual_carbon_reduction_tons / 1000000, 1)}M tons`
         : '2.34M tons',
       time_efficiency: '28%',
       roi: '$4.2B over 5 years'
@@ -578,11 +600,10 @@ const WalmartDemo: React.FC = () => {
     );
   };
 
-  // Step 7: Final Results (20 seconds)
   const renderResultsStep = () => {
     const keyAchievements = [
-      '25% Cost Reduction',
-      '35% Carbon Reduction', 
+      `${safeToFixed(optimizationResults?.improvements?.cost_improvement_percent, 0)}% Cost Reduction`,
+      `${safeToFixed(optimizationResults?.improvements?.carbon_improvement_percent, 0)}% Carbon Reduction`, 
       'Blockchain Verified',
       '$4.2B Walmart Impact',
       'Production Ready'
@@ -712,10 +733,9 @@ const WalmartDemo: React.FC = () => {
           </Alert>
         )}
 
-        {/* ✅ Show backend connection status */}
         {walmartNYCData && (
           <Alert severity="success" sx={{ mt: 2 }}>
-            ✅ Connected to backend demo service - Scenario: {walmartNYCData.scenario_name}
+            ✅ Connected to backend demo service - Scenario: {walmartNYCData.scenario_name || 'NYC Demo'}
           </Alert>
         )}
       </Box>
