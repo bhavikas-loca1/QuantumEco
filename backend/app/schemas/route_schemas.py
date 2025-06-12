@@ -456,17 +456,23 @@ class BatchOptimizationRequest(BaseModel):
     scenarios: List[RouteOptimizationRequest] = Field(..., min_items=1, max_items=10, description="List of optimization scenarios")
     parallel_processing: bool = Field(default=True, description="Enable parallel processing of scenarios")
     compare_results: bool = Field(default=True, description="Compare results across scenarios")
-
-class BatchOptimizationResponse(BaseModel):
-    """Response for batch optimization with multiple scenario results"""
-    batch_id: str = Field(..., description="Unique batch identifier")
-    status: OptimizationStatus = Field(..., description="Overall batch status")
-    scenarios: List[RouteOptimizationResponse] = Field(..., description="Results for each scenario")
-    best_scenario_id: Optional[str] = Field(None, description="ID of the best performing scenario")
-    total_processing_time: float = Field(..., ge=0, description="Total processing time for batch")
-    successful_optimizations: int = Field(..., ge=0, description="Number of successful optimizations")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Batch completion timestamp")
-
+class RouteOptimizationResponse(BaseModel):
+    optimization_id: str
+    status: str = "completed"
+    optimized_routes: List[OptimizedRoute]
+    total_distance_km: float = Field(alias="total_distance")
+    total_time_minutes: float = Field(alias="total_time") 
+    total_cost: float
+    total_carbon_kg: float = Field(alias="total_carbon")
+    savings_analysis: Optional[Dict[str, Any]] = None
+    method: str = "quantum_inspired"
+    processing_time: float
+    quantum_improvement_score: Optional[float] = None
+    created_at: datetime
+    
+    class Config:
+        allow_population_by_field_name = True
+        
 class RouteComparisonRequest(BaseModel):
     """Request for comparing different optimization methods"""
     locations: List[Location] = Field(..., min_items=2, max_items=100, description="Locations for comparison")
