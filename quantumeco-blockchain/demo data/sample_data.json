@@ -76,18 +76,18 @@
   ],
   "optimization_results": {
     "traditional": {
-      "total_distance_km": 675.32,
+      "total_distance": 675.32,
       "total_time_hrs": 15.5,
       "total_cost_usd": 987.45,
-      "total_carbon_kg": 325.67,
+      "total_carbon": 325.67,
       "routes_used": 7,
       "average_vehicle_utilization": 78.4
     },
     "quantum": {
-      "total_distance_km": 489.21,
+      "total_distance": 489.21,
       "total_time_hrs": 10.8,
       "total_cost_usd": 725.50,
-      "total_carbon_kg": 208.15,
+      "total_carbon": 208.15,
       "routes_used": 5,
       "optimization_time_sec": 12.3,
       "quantum_score": 92,

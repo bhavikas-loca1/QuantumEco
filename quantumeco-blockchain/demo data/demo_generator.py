@@ -77,10 +77,10 @@ class DemoDataGenerator:
     def _simulate_traditional_routing(self, scenario: Dict) -> Dict[str, Any]:
         """Simulate traditional routing results"""
         return {
-            "total_distance_km": round(random.uniform(500, 800), 2),
+            "total_distance": round(random.uniform(500, 800), 2),
             "total_time_hrs": round(random.uniform(12, 18), 1),
             "total_cost_usd": round(random.uniform(850, 1200), 2),
-            "total_carbon_kg": round(random.uniform(250, 400), 2),
+            "total_carbon": round(random.uniform(250, 400), 2),
             "routes_used": len(scenario["vehicles"]) + random.randint(0, 2)
         }
 
@@ -88,10 +88,10 @@ class DemoDataGenerator:
         """Simulate quantum-inspired optimization results"""
         traditional = scenario["optimization_results"]["traditional"]
         return {
-            "total_distance_km": round(traditional["total_distance_km"] * 0.75, 2),
+            "total_distance": round(traditional["total_distance"] * 0.75, 2),
             "total_time_hrs": round(traditional["total_time_hrs"] * 0.72, 1),
             "total_cost_usd": round(traditional["total_cost_usd"] * 0.75, 2),
-            "total_carbon_kg": round(traditional["total_carbon_kg"] * 0.65, 2),
+            "total_carbon": round(traditional["total_carbon"] * 0.65, 2),
             "routes_used": len(scenario["vehicles"]) - random.randint(0, 2),
             "optimization_time_sec": round(random.uniform(8, 15), 1),
             "quantum_score": random.randint(85, 95)
@@ -107,8 +107,8 @@ class DemoDataGenerator:
                 "route_id": f"route_{i+1}",
                 "vehicle_id": scenario["vehicles"][i % len(scenario["vehicles"])]["id"],
                 "carbon_saved_kg": round(
-                    scenario["optimization_results"]["traditional"]["total_carbon_kg"] -
-                    scenario["optimization_results"]["quantum"]["total_carbon_kg"], 2
+                    scenario["optimization_results"]["traditional"]["total_carbon"] -
+                    scenario["optimization_results"]["quantum"]["total_carbon"], 2
                 ),
                 "cost_saved_usd": round(
                     scenario["optimization_results"]["traditional"]["total_cost_usd"] -

@@ -349,9 +349,9 @@ async def run_optimization_simulation(
         response = SimulationResults(
             simulation_id=simulation_id,
             total_cost_usd=simulation_result["total_cost"],
-            total_carbon_kg=simulation_result["total_carbon"],
+            total_carbon=simulation_result["total_carbon"],
             total_time_hours=simulation_result["total_time"] / 60,
-            total_distance_km=simulation_result["total_distance"],
+            total_distance=simulation_result["total_distance"],
             optimization_score=efficiency_score,
             cost_per_delivery=simulation_result["total_cost"] / request.num_deliveries,
             carbon_per_delivery=simulation_result["total_carbon"] / request.num_deliveries,

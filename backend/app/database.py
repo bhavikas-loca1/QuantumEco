@@ -23,8 +23,8 @@ class DeliveryRecord(Base):
     optimization_id = Column(String(255), nullable=True, index=True)
     
     # Performance metrics
-    total_distance_km = Column(Float, nullable=False)
-    total_time_minutes = Column(Float, nullable=False)
+    total_distance = Column(Float, nullable=False)
+    total_time = Column(Float, nullable=False)
     total_cost_usd = Column(Float, nullable=False)
     total_emissions_kg = Column(Float, nullable=False)
     optimization_score = Column(Float, nullable=True)

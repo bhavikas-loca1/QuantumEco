@@ -154,13 +154,19 @@ export const optimizeRoutes = async (
       traffic_enabled: true,
       weather_enabled: true,
       create_certificate: true,
-      optimization_timeout: 30,
+      optimization_timeout: 25, // ✅ Reduced from 30 to 25
       algorithm_preference: 'quantum_inspired',
     };
 
     const response: AxiosResponse<RouteOptimizationResponse> = await api.post(
       '/api/routes/optimize', 
-      request
+      request,
+      {
+        timeout: 100000, // ✅ Increased timeout to 35 seconds
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
     );
     return response.data;
   } catch (error) {
@@ -168,6 +174,7 @@ export const optimizeRoutes = async (
     throw error;
   }
 };
+
 
 export const compareOptimizationMethods = async (
   locations: Location[],

@@ -69,7 +69,7 @@ class VehicleInstance(Base):
     availability_end = Column(String(10), nullable=True, default="18:00")
     
     # Performance tracking
-    total_distance_km = Column(Float, nullable=False, default=0)
+    total_distance = Column(Float, nullable=False, default=0)
     total_deliveries = Column(Integer, nullable=False, default=0)
     total_emissions_kg = Column(Float, nullable=False, default=0)
     efficiency_score = Column(Float, nullable=True)

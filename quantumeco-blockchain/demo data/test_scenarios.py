@@ -15,7 +15,7 @@ class TestScenarios:
                 ]
             },
             "expected": {
-                "total_distance_km": {"min": 8, "max": 12},
+                "total_distance": {"min": 8, "max": 12},
                 "total_cost_usd": {"min": 6, "max": 10}
             }
         }

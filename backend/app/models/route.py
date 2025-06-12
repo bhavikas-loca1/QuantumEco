@@ -27,10 +27,10 @@ class RouteOptimization(Base):
     quantum_improvement_score = Column(Float, nullable=True)
     
     # Performance metrics
-    total_distance_km = Column(Float, nullable=True)
-    total_time_minutes = Column(Float, nullable=True)
+    total_distance = Column(Float, nullable=True)
+    total_time = Column(Float, nullable=True)
     total_cost_usd = Column(Float, nullable=True)
-    total_carbon_kg = Column(Float, nullable=True)
+    total_carbon = Column(Float, nullable=True)
     
     # Savings analysis
     cost_saved_usd = Column(Float, nullable=True, default=0)
@@ -59,7 +59,7 @@ class RouteOptimization(Base):
     __table_args__ = (
         Index('idx_optimization_status_date', 'status', 'created_at'),
         Index('idx_optimization_algorithm', 'algorithm_used', 'quantum_improvement_score'),
-        Index('idx_optimization_performance', 'total_cost_usd', 'total_carbon_kg'),
+        Index('idx_optimization_performance', 'total_cost_usd', 'total_carbon'),
     )
 
 class RouteSegment(Base):

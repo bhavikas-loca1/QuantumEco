@@ -203,9 +203,9 @@ class SimulationResults(BaseModel):
     """Large-scale simulation results"""
     simulation_id: str = Field(..., description="Simulation identifier")
     total_cost_usd: float = Field(..., ge=0, description="Total simulation cost")
-    total_carbon_kg: float = Field(..., ge=0, description="Total carbon emissions")
+    total_carbon: float = Field(..., ge=0, description="Total carbon emissions")
     total_time_hours: float = Field(..., ge=0, description="Total time in hours")
-    total_distance_km: float = Field(..., ge=0, description="Total distance")
+    total_distance: float = Field(..., ge=0, description="Total distance")
     optimization_score: float = Field(..., ge=0, le=100, description="Overall optimization score")
     cost_per_delivery: float = Field(..., ge=0, description="Average cost per delivery")
     carbon_per_delivery: float = Field(..., ge=0, description="Average carbon per delivery")
