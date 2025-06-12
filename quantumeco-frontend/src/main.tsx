@@ -15,7 +15,7 @@ const theme = createTheme({
       main: '#ffc220', // Walmart yellow
     },
     background: {
-      default: '#f5f5f5',
+      default: '#ffc220',
     },
   },
   typography: {

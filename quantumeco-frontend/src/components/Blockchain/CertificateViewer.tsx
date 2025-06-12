@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
   Typography,
   Box,
   Card,
@@ -170,192 +169,200 @@ const CertificateViewer: React.FC = () => {
   const sampleRouteData = generateSampleRouteData();
 
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 1 }}>
-          🔗 Blockchain Certificate Management
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Manage blockchain certificates, Environmental Trust Tokens, and carbon credits with live demo capabilities
-        </Typography>
-        
-        <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Chip 
-            label={`${certificates.length} Certificates`} 
-            color="primary" 
-            icon={<VerifiedOutlined />}
-          />
-          <Chip 
-            label={`${ettTokens.length} ETT Tokens`} 
-            color="success" 
-            icon={<NatureOutlined />}
-          />
-          <Chip 
-            label={`${carbonCredits.length} Carbon Credits`} 
-            color="info" 
-            icon={<AccountBalanceWalletOutlined />}
-          />
-        </Box>
-      </Box>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
-
-      {/* Demo Alert */}
-      <Alert severity="info" sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          🎬 Live Demo Mode Active
-        </Typography>
-        <Typography variant="body2">
-          Generate live blockchain certificates and watch real-time verification in action. 
-          Perfect for demonstrating quantum-inspired optimization with blockchain verification.
-        </Typography>
-      </Alert>
-
-      {/* Tabs Navigation */}
-      <Card sx={{ mb: 3 }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={tabValue} onChange={handleTabChange} aria-label="blockchain tabs">
-            <Tab 
-              label="Live Generator" 
-              icon={<PlayArrowOutlined />} 
-              iconPosition="start"
+    // FIXED: Using DemoPage pattern - full viewport width with proper overflow control
+    <Box sx={{ 
+      width: '100vw', // Use full viewport width like DemoPage
+      minHeight: '100vh',
+      overflow: 'hidden', // Prevent horizontal scroll like DemoPage
+      boxSizing: 'border-box'
+    }}>
+      <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, py: 3 }}>
+        {/* Header */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 1 }}>
+            🔗 Blockchain Certificate Management
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Manage blockchain certificates, Environmental Trust Tokens, and carbon credits with live demo capabilities
+          </Typography>
+          
+          <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Chip 
+              label={`${certificates.length} Certificates`} 
+              color="primary" 
+              icon={<VerifiedOutlined />}
             />
-            <Tab 
-              label="Network Status" 
-              icon={<ExploreOutlined />} 
-              iconPosition="start"
+            <Chip 
+              label={`${ettTokens.length} ETT Tokens`} 
+              color="success" 
+              icon={<NatureOutlined />}
             />
-            <Tab 
-              label="ETT Tokens" 
-              icon={<NatureOutlined />} 
-              iconPosition="start"
+            <Chip 
+              label={`${carbonCredits.length} Carbon Credits`} 
+              color="info" 
+              icon={<AccountBalanceWalletOutlined />}
             />
-            <Tab 
-              label="Carbon Credits" 
-              icon={<AccountBalanceWalletOutlined />} 
-              iconPosition="start"
-            />
-          </Tabs>
-        </Box>
-
-        {/* Tab 0: Live Certificate Generation */}
-        <TabPanel value={tabValue} index={0}>
-          <Typography variant="h6" gutterBottom>
-            🚀 Live Certificate Generation for Demo
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Generate blockchain certificates in real-time during your presentation. 
-            Perfect for the 30-second blockchain segment of your demo.
-          </Typography>
-          
-          {/* ✅ FIXED: Show current route data being used */}
-          <Alert severity="info" sx={{ mb: 3 }}>
-            <Typography variant="body2">
-              <strong>Demo Route Data:</strong> {sampleRouteData.route_id} | 
-              Carbon: {sampleRouteData.carbon_saved} kg CO₂ | 
-              Cost: ${sampleRouteData.cost_saved} | 
-              Score: {sampleRouteData.optimization_score}
-            </Typography>
-          </Alert>
-          
-          <LiveCertificateGenerator 
-            routeData={sampleRouteData}
-            onCertificateCreated={handleCertificateCreated}
-          />
-        </TabPanel>
-
-        {/* Tab 1: Blockchain Network Status */}
-        <TabPanel value={tabValue} index={1}>
-          <Typography variant="h6" gutterBottom>
-            🌐 Blockchain Network Verification
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Real-time blockchain network status and transaction verification.
-          </Typography>
-          
-          <BlockchainVerification />
-        </TabPanel>
-
-        {/* Tab 2: Environmental Trust Tokens */}
-        <TabPanel value={tabValue} index={2}>
-          <Typography variant="h6" gutterBottom>
-            🌱 Environmental Trust Tokens (ETT)
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Blockchain-verified sustainability scoring with transparent environmental impact metrics.
-          </Typography>
-          
-          <ETTDisplay tokens={ettTokens} />
-        </TabPanel>
-
-        {/* Tab 3: Carbon Credits */}
-        <TabPanel value={tabValue} index={3}>
-          <Typography variant="h6" gutterBottom>
-            💰 Tradeable Carbon Credits
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Monetize environmental impact through blockchain-verified carbon offset certificates.
-          </Typography>
-          
-          <CarbonCreditDisplay 
-            carbonCredits={carbonCredits}
-            onTradeCredit={(creditId) => console.log(`Trading credit ${creditId}`)}
-          />
-        </TabPanel>
-      </Card>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            🎯 Quick Demo Actions
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <Button 
-              variant="contained" 
-              startIcon={<SecurityOutlined />}
-              onClick={() => setTabValue(0)}
-            >
-              Generate Live Certificate
-            </Button>
-            <Button 
-              variant="outlined" 
-              startIcon={<ExploreOutlined />}
-              onClick={() => setTabValue(1)}
-            >
-              Check Network Status
-            </Button>
-            <Button 
-              variant="outlined" 
-              startIcon={<NatureOutlined />}
-              onClick={() => setTabValue(2)}
-            >
-              View ETT Tokens
-            </Button>
-            <Button 
-              variant="outlined" 
-              startIcon={<AccountBalanceWalletOutlined />}
-              onClick={() => setTabValue(3)}
-            >
-              View Carbon Credits
-            </Button>
-            <Button 
-              variant="text" 
-              onClick={loadCertificateData}
-              disabled={loading}
-            >
-              {loading ? 'Refreshing...' : 'Refresh Data'}
-            </Button>
           </Box>
-        </CardContent>
-      </Card>
-    </Container>
+        </Box>
+
+        {/* Error Alert */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
+
+        {/* Demo Alert */}
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            🎬 Live Demo Mode Active
+          </Typography>
+          <Typography variant="body2">
+            Generate live blockchain certificates and watch real-time verification in action. 
+            Perfect for demonstrating quantum-inspired optimization with blockchain verification.
+          </Typography>
+        </Alert>
+
+        {/* Tabs Navigation */}
+        <Card sx={{ mb: 3 }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={tabValue} onChange={handleTabChange} aria-label="blockchain tabs">
+              <Tab 
+                label="Live Generator" 
+                icon={<PlayArrowOutlined />} 
+                iconPosition="start"
+              />
+              <Tab 
+                label="Network Status" 
+                icon={<ExploreOutlined />} 
+                iconPosition="start"
+              />
+              <Tab 
+                label="ETT Tokens" 
+                icon={<NatureOutlined />} 
+                iconPosition="start"
+              />
+              <Tab 
+                label="Carbon Credits" 
+                icon={<AccountBalanceWalletOutlined />} 
+                iconPosition="start"
+              />
+            </Tabs>
+          </Box>
+
+          {/* Tab 0: Live Certificate Generation */}
+          <TabPanel value={tabValue} index={0}>
+            <Typography variant="h6" gutterBottom>
+              🚀 Live Certificate Generation for Demo
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Generate blockchain certificates in real-time during your presentation. 
+              Perfect for the 30-second blockchain segment of your demo.
+            </Typography>
+            
+            {/* ✅ FIXED: Show current route data being used */}
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <Typography variant="body2">
+                <strong>Demo Route Data:</strong> {sampleRouteData.route_id} | 
+                Carbon: {sampleRouteData.carbon_saved} kg CO₂ | 
+                Cost: ${sampleRouteData.cost_saved} | 
+                Score: {sampleRouteData.optimization_score}
+              </Typography>
+            </Alert>
+            
+            <LiveCertificateGenerator 
+              routeData={sampleRouteData}
+              onCertificateCreated={handleCertificateCreated}
+            />
+          </TabPanel>
+
+          {/* Tab 1: Blockchain Network Status */}
+          <TabPanel value={tabValue} index={1}>
+            <Typography variant="h6" gutterBottom>
+              🌐 Blockchain Network Verification
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Real-time blockchain network status and transaction verification.
+            </Typography>
+            
+            <BlockchainVerification />
+          </TabPanel>
+
+          {/* Tab 2: Environmental Trust Tokens */}
+          <TabPanel value={tabValue} index={2}>
+            <Typography variant="h6" gutterBottom>
+              🌱 Environmental Trust Tokens (ETT)
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Blockchain-verified sustainability scoring with transparent environmental impact metrics.
+            </Typography>
+            
+            <ETTDisplay tokens={ettTokens} />
+          </TabPanel>
+
+          {/* Tab 3: Carbon Credits */}
+          <TabPanel value={tabValue} index={3}>
+            <Typography variant="h6" gutterBottom>
+              💰 Tradeable Carbon Credits
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Monetize environmental impact through blockchain-verified carbon offset certificates.
+            </Typography>
+            
+            <CarbonCreditDisplay 
+              carbonCredits={carbonCredits}
+              onTradeCredit={(creditId) => console.log(`Trading credit ${creditId}`)}
+            />
+          </TabPanel>
+        </Card>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              🎯 Quick Demo Actions
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button 
+                variant="contained" 
+                startIcon={<SecurityOutlined />}
+                onClick={() => setTabValue(0)}
+              >
+                Generate Live Certificate
+              </Button>
+              <Button 
+                variant="outlined" 
+                startIcon={<ExploreOutlined />}
+                onClick={() => setTabValue(1)}
+              >
+                Check Network Status
+              </Button>
+              <Button 
+                variant="outlined" 
+                startIcon={<NatureOutlined />}
+                onClick={() => setTabValue(2)}
+              >
+                View ETT Tokens
+              </Button>
+              <Button 
+                variant="outlined" 
+                startIcon={<AccountBalanceWalletOutlined />}
+                onClick={() => setTabValue(3)}
+              >
+                View Carbon Credits
+              </Button>
+              <Button 
+                variant="text" 
+                onClick={loadCertificateData}
+                disabled={loading}
+              >
+                {loading ? 'Refreshing...' : 'Refresh Data'}
+              </Button>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    </Box>
   );
 };
 
