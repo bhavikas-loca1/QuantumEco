@@ -24,6 +24,8 @@ import BlockchainVerification from './BlockchainVerification';
 import ETTDisplay from './ETTDisplay';
 import CarbonCreditDisplay from './CarbonCreditDisplay';
 import { getRecentCertificates } from '../../Services/api';
+import type { ETTToken } from './ETTDisplay'; // ✅ Use shared interface
+
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -54,9 +56,9 @@ function TabPanel(props: TabPanelProps) {
 const CertificateViewer: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
   const [certificates, setCertificates] = useState<any[]>([]);
-  const [ettTokens, setEttTokens] = useState<any[]>([]);
+  const [ettTokens, setEttTokens] = useState<ETTToken[]>([]); 
   const [carbonCredits, setCarbonCredits] = useState<any[]>([]);
-  const [, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadCertificateData();
@@ -269,7 +271,7 @@ const CertificateViewer: React.FC = () => {
           </Typography>
           
           <CarbonCreditDisplay 
-            credits={carbonCredits}
+            carbonCredits={carbonCredits}
             onTradeCredit={(creditId) => console.log(`Trading credit ${creditId}`)}
           />
         </TabPanel>

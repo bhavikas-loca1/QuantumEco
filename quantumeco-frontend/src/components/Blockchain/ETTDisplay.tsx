@@ -1,6 +1,4 @@
-// Components/ETTDisplay.tsx
-
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Card,
   CardContent,
@@ -9,16 +7,15 @@ import {
   Chip,
   LinearProgress,
   Avatar,
-  CircularProgress,
 } from '@mui/material';
 import {
   NatureOutlined,
   StarOutlined,
   Co2Outlined,
 } from '@mui/icons-material';
-import { getETTTokens } from '../../Services/blockchain';
 
-interface ETTToken {
+// ✅ Moved interface to shared types file (if needed) or keep here
+export interface ETTToken {
   token_id: number;
   route_id: string;
   trust_score: number;
@@ -27,49 +24,22 @@ interface ETTToken {
   created_at: string;
 }
 
+interface ETTDisplayProps {
+  tokens: ETTToken[]; // ✅ Added prop interface
+}
+
 /**
  * ETTDisplay Component
  * Purpose: Display Environmental Trust Tokens with sustainability metrics
  * Features: Trust scores, sustainability ratings, carbon impact visualization
  */
-const ETTDisplay: React.FC = () => {
-  const [tokens, setTokens] = useState<ETTToken[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadETTTokens();
-  }, []);
-
-  const loadETTTokens = async () => {
-    try {
-      setLoading(true);
-      const ettTokens = await getETTTokens(5);
-      setTokens(ettTokens);
-    } catch (error) {
-      console.error('Failed to load ETT tokens:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const ETTDisplay: React.FC<ETTDisplayProps> = ({ tokens }) => {
   const getTrustScoreColor = (score: number) => {
     if (score >= 90) return 'success';
     if (score >= 75) return 'info';
     if (score >= 60) return 'warning';
     return 'error';
   };
-
-  if (loading) {
-    return (
-      <Card>
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress />
-          </Box>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card>

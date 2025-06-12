@@ -33,24 +33,28 @@ import {
   getHealthCheck,
   getBlockchainExplorer,
   compareOptimizationMethods,
-} from '../../Services/api';
+} from '../../Services/api'; // ✅ Using your exact path
 
 /**
  * WalmartDemo Component - Complete 3-minute hackathon demo
  * Purpose: Execute full demo flow following video guide script
- * Features: All-in-one demo with backend integration
+ * Features: Matches backend demo service structure from paste-3.txt
  */
 const WalmartDemo: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [demoData, setDemoData] = useState<any>(null);
   const [autoPlay, setAutoPlay] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Demo step states
+  // ✅ FIXED: All state variables properly defined (no more unused warnings)
+  const [walmartNYCData, setWalmartNYCData] = useState<any>(null);
   const [healthData, setHealthData] = useState<any>(null);
   const [optimizationResults, setOptimizationResults] = useState<any>(null);
   const [routeData, setRouteData] = useState<any>(null);
+  
+  // ✅ FIXED: Separate loading states to prevent conflicts
+  const [initialLoading, setInitialLoading] = useState(false);
+  const [healthLoading, setHealthLoading] = useState(false);
+  const [optimizationLoading, setOptimizationLoading] = useState(false);
 
   const DEMO_STEPS = [
     { name: 'intro', duration: 30, title: 'Problem Statement' },
@@ -69,23 +73,102 @@ const WalmartDemo: React.FC = () => {
     { label: 'Potential 1% Savings', value: '$42,000,000', icon: <AttachMoney /> }
   ];
 
+  // ✅ DEMO_LOCATIONS: Matches backend paste-3.txt structure
   const DEMO_LOCATIONS = [
-    { id: 'depot', name: 'Walmart Distribution Center', address: '77 Broadway, New York, NY', latitude: 40.7589, longitude: -73.9851, demand_kg: 0 },
-    { id: 'ts', name: 'Times Square Store', address: '1560 Broadway, New York, NY', latitude: 40.7580, longitude: -73.9855, demand_kg: 75 },
-    { id: 'bh', name: 'Brooklyn Heights', address: '200 Cadman Plaza W, Brooklyn, NY', latitude: 40.6958, longitude: -73.9958, demand_kg: 50 },
-    { id: 'qc', name: 'Queens Center', address: '90-15 Queens Blvd, Queens, NY', latitude: 40.7370, longitude: -73.8756, demand_kg: 85 },
-    { id: 'bp', name: 'Bronx Plaza', address: '215 E 161st St, Bronx, NY', latitude: 40.8176, longitude: -73.9182, demand_kg: 60 },
+    { 
+      id: 'depot', 
+      name: 'Walmart Distribution Center', 
+      address: 'Walmart Distribution Center, Manhattan, NY',
+      latitude: 40.7589, 
+      longitude: -73.9851, 
+      demand_kg: 0,
+      priority: 1,
+      time_window_start: '06:00',
+      time_window_end: '22:00',
+      delivery_type: 'standard' as const
+    },
+    { 
+      id: 'ts', 
+      name: 'Times Square Store', 
+      address: '1560 Broadway, New York, NY',
+      latitude: 40.7580, 
+      longitude: -73.9855, 
+      demand_kg: 75,
+      priority: 2,
+      time_window_start: '09:00',
+      time_window_end: '17:00',
+      delivery_type: 'standard' as const
+    },
+    { 
+      id: 'bh', 
+      name: 'Brooklyn Heights', 
+      address: '200 Cadman Plaza W, Brooklyn, NY',
+      latitude: 40.6958, 
+      longitude: -73.9958, 
+      demand_kg: 50,
+      priority: 1,
+      time_window_start: '09:00',
+      time_window_end: '17:00',
+      delivery_type: 'standard' as const
+    },
+    { 
+      id: 'qc', 
+      name: 'Queens Center', 
+      address: '90-15 Queens Blvd, Queens, NY',
+      latitude: 40.7370, 
+      longitude: -73.8756, 
+      demand_kg: 85,
+      priority: 2,
+      time_window_start: '09:00',
+      time_window_end: '17:00',
+      delivery_type: 'standard' as const
+    },
+    { 
+      id: 'bp', 
+      name: 'Bronx Plaza', 
+      address: '215 E 161st St, Bronx, NY',
+      latitude: 40.8176, 
+      longitude: -73.9182, 
+      demand_kg: 60,
+      priority: 1,
+      time_window_start: '09:00',
+      time_window_end: '17:00',
+      delivery_type: 'standard' as const
+    },
   ];
 
+  // ✅ DEMO_VEHICLES: Matches backend paste-3.txt structure  
   const DEMO_VEHICLES = [
-    { id: 'truck1', type: 'diesel_truck' as const, capacity_kg: 1000, cost_per_km: 0.85, emission_factor: 0.27 },
-    { id: 'ev1', type: 'electric_van' as const, capacity_kg: 500, cost_per_km: 0.65, emission_factor: 0.05 }
+    { 
+      id: 'walmart_vehicle_1', 
+      type: 'diesel_truck' as const, 
+      capacity_kg: 1000, 
+      cost_per_km: 0.85, 
+      emission_factor: 0.27,
+      max_range_km: 800,
+      availability_start: '08:00',
+      availability_end: '18:00'
+    },
+    { 
+      id: 'walmart_vehicle_2', 
+      type: 'electric_van' as const, 
+      capacity_kg: 500, 
+      cost_per_km: 0.65, 
+      emission_factor: 0.05,
+      max_range_km: 300,
+      availability_start: '08:00',
+      availability_end: '18:00'
+    }
   ];
 
+  // ✅ FIXED: All useEffect hooks at the TOP LEVEL (never conditional)
+  
+  // Initial data loading
   useEffect(() => {
-    loadDemoData();
+    loadWalmartNYCData();
   }, []);
 
+  // Auto-play functionality
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (autoPlay && currentStep < DEMO_STEPS.length - 1) {
@@ -96,23 +179,100 @@ const WalmartDemo: React.FC = () => {
     return () => clearTimeout(interval);
   }, [currentStep, autoPlay]);
 
-  const loadDemoData = async () => {
+  // ✅ FIXED: Health check when step 1 is reached (no hooks in render functions)
+  useEffect(() => {
+    if (currentStep === 1 && !healthData && !healthLoading) {
+      checkAllSystems();
+    }
+  }, [currentStep, healthData, healthLoading]);
+
+  // ✅ FIXED: Optimization when step 2 is reached (no hooks in render functions)
+  useEffect(() => {
+    if (currentStep === 2 && !optimizationResults && !optimizationLoading) {
+      runLiveOptimization();
+    }
+  }, [currentStep, optimizationResults, optimizationLoading]);
+
+  // ✅ Load Walmart NYC data from backend (matches paste-3.txt response)
+  const loadWalmartNYCData = async () => {
     try {
+      setInitialLoading(true);
       const data = await getWalmartNYCDemo();
-      setDemoData(data);
+      setWalmartNYCData(data);
       
-      // Prepare route data for blockchain demo
+      // ✅ Prepare route data for blockchain demo (matches backend structure)
       setRouteData({
-        route_id: `live_demo_${Date.now()}`,
+        route_id: data.scenario_id || `live_demo_${Date.now()}`,
+        vehicle_id: 'walmart_truck_001',
+        carbon_saved: data.savings_analysis?.carbon_saved_kg || 42.3,
+        cost_saved: data.savings_analysis?.cost_saved_usd || 156.75,
+        distance_km: 125.4,
+        optimization_score: data.savings_analysis?.efficiency_score || 94,
+      });
+      
+      console.log('✅ Walmart NYC data loaded:', data);
+    } catch (error) {
+      console.error('Failed to load Walmart NYC data:', error);
+      setError('Demo data loading failed - using fallback data');
+      
+      // ✅ Fallback route data
+      setRouteData({
+        route_id: `fallback_demo_${Date.now()}`,
         vehicle_id: 'walmart_truck_001',
         carbon_saved: 42.3,
         cost_saved: 156.75,
         distance_km: 125.4,
         optimization_score: 94,
       });
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
+  // ✅ FIXED: Health check function (moved out of render functions)
+  const checkAllSystems = async () => {
+    setHealthLoading(true);
+    try {
+      const [health, blockchain] = await Promise.all([
+        getHealthCheck(),
+        getBlockchainExplorer()
+      ]);
+      setHealthData({ health, blockchain });
+      console.log('✅ Health check completed:', { health, blockchain });
     } catch (error) {
-      console.error('Failed to load demo data:', error);
-      setError('Demo data loading failed - using fallback data');
+      console.error('Health check failed:', error);
+      // ✅ Fallback health data
+      setHealthData({ 
+        health: { status: 'healthy' }, 
+        blockchain: { network_id: 1337 } 
+      });
+    } finally {
+      setHealthLoading(false);
+    }
+  };
+
+  // ✅ FIXED: Optimization function (moved out of render functions)
+  const runLiveOptimization = async () => {
+    setOptimizationLoading(true);
+    try {
+      const comparison = await compareOptimizationMethods(DEMO_LOCATIONS, DEMO_VEHICLES);
+      setOptimizationResults(comparison);
+      console.log('✅ Optimization completed:', comparison);
+    } catch (error) {
+      console.error('Optimization failed, using mock data:', error);
+      // ✅ Mock results matching backend structure
+      setOptimizationResults({
+        traditional_result: { total_cost: 847.50, total_carbon: 142.3, total_time: 420 },
+        quantum_inspired_result: { total_cost: 635.25, total_carbon: 92.4, total_time: 302 },
+        improvements: { 
+          cost_improvement_percent: 25.0, 
+          carbon_improvement_percent: 35.1, 
+          time_improvement_percent: 28.1 
+        },
+        winner: 'quantum_inspired' as const
+      });
+    } finally {
+      setOptimizationLoading(false);
     }
   };
 
@@ -125,9 +285,18 @@ const WalmartDemo: React.FC = () => {
     setAutoPlay(false);
     setOptimizationResults(null);
     setHealthData(null);
+    setError(null);
   };
 
-  // Step 1: Problem Introduction (30 seconds)
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'healthy': return <CheckCircle color="success" />;
+      case 'degraded': return <Warning color="warning" />;
+      default: return <Error color="error" />;
+    }
+  };
+
+  // ✅ Step 1: Problem Introduction (30 seconds)
   const renderIntroStep = () => (
     <Box sx={{ textAlign: 'center', py: 4 }}>
       <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2, color: 'primary.main' }}>
@@ -164,185 +333,124 @@ const WalmartDemo: React.FC = () => {
     </Box>
   );
 
-  // Step 2: System Health Check (15 seconds)
-  const renderHealthStep = () => {
-    const checkAllSystems = async () => {
-      setLoading(true);
-      try {
-        const [health, blockchain] = await Promise.all([
-          getHealthCheck(),
-          getBlockchainExplorer()
-        ]);
-        setHealthData({ health, blockchain });
-      } catch (error) {
-        setHealthData({ health: { status: 'healthy' }, blockchain: { network_id: 1337 } });
-      } finally {
-        setLoading(false);
-      }
-    };
+  // ✅ FIXED: Step 2: System Health Check - NO useEffect inside
+  const renderHealthStep = () => (
+    <Box sx={{ textAlign: 'center', py: 4 }}>
+      <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
+        🔍 System Health Verification
+      </Typography>
+      
+      {healthLoading ? (
+        <LoadingSpinner message="Verifying all systems..." />
+      ) : (
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mb: 4, flexWrap: 'wrap' }}>
+          <Card sx={{ minWidth: 200 }}>
+            <CardContent sx={{ textAlign: 'center' }}>
+              {getStatusIcon(healthData?.health?.status || 'healthy')}
+              <Typography variant="h6" sx={{ mt: 1 }}>FastAPI Backend</Typography>
+              <Chip label={healthData?.health?.status || 'healthy'} color="success" size="small" />
+            </CardContent>
+          </Card>
 
-    useEffect(() => {
-      if (currentStep === 1 && !healthData) {
-        checkAllSystems();
-      }
-    }, [currentStep]);
+          <Card sx={{ minWidth: 200 }}>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <CheckCircle color="success" />
+              <Typography variant="h6" sx={{ mt: 1 }}>Blockchain Network</Typography>
+              <Chip label={`ID: ${healthData?.blockchain?.network_id || 1337}`} color="success" size="small" />
+            </CardContent>
+          </Card>
 
-    const getStatusIcon = (status: string) => {
-      switch (status) {
-        case 'healthy': return <CheckCircle color="success" />;
-        case 'degraded': return <Warning color="warning" />;
-        default: return <Error color="error" />;
-      }
-    };
+          <Card sx={{ minWidth: 200 }}>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <CheckCircle color="success" />
+              <Typography variant="h6" sx={{ mt: 1 }}>Route Optimizer</Typography>
+              <Chip label="operational" color="success" size="small" />
+            </CardContent>
+          </Card>
+        </Box>
+      )}
 
-    return (
-      <Box sx={{ textAlign: 'center', py: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3 }}>
-          🔍 System Health Verification
+      <Typography variant="h5" color="success.main" sx={{ fontWeight: 'bold' }}>
+        ✅ All Systems Operational - Ready for Demo!
+      </Typography>
+    </Box>
+  );
+
+  // ✅ FIXED: Step 3: Live Optimization - NO useEffect inside
+  const renderOptimizationStep = () => (
+    <Box sx={{ py: 4 }}>
+      <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
+        🛣️ Live Route Optimization Demo
+      </Typography>
+
+      <Typography variant="h6" sx={{ mb: 4, textAlign: 'center', color: 'text.secondary' }}>
+        NYC delivery scenario: 5 locations, 2 vehicles - Traditional vs Quantum-Inspired
+      </Typography>
+
+      {optimizationLoading ? (
+        <LoadingSpinner message="Running optimization comparison..." />
+      ) : optimizationResults ? (
+        <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
+          {/* Traditional Results */}
+          <Card sx={{ minWidth: 300 }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary' }}>
+                Traditional Routing
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography>Cost: ${optimizationResults.traditional_result.total_cost.toFixed(2)}</Typography>
+                <Typography>Carbon: {optimizationResults.traditional_result.total_carbon.toFixed(1)} kg CO₂</Typography>
+                <Typography>Time: {Math.round(optimizationResults.traditional_result.total_time)} minutes</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Quantum Results */}
+          <Card sx={{ minWidth: 300, bgcolor: 'success.50', border: '2px solid', borderColor: 'success.main' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <Typography variant="h6" color="success.main">Quantum-Inspired Routing</Typography>
+                <Chip label="WINNER" color="success" size="small" />
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography>Cost: ${optimizationResults.quantum_inspired_result.total_cost.toFixed(2)}</Typography>
+                <Typography>Carbon: {optimizationResults.quantum_inspired_result.total_carbon.toFixed(1)} kg CO₂</Typography>
+                <Typography>Time: {Math.round(optimizationResults.quantum_inspired_result.total_time)} minutes</Typography>
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Improvements */}
+          <Card sx={{ minWidth: 300, bgcolor: 'primary.50' }}>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>Quantum Improvements</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Chip label={`${optimizationResults.improvements.cost_improvement_percent.toFixed(1)}% Cost Reduction`} color="success" icon={<TrendingUp />} />
+                <Chip label={`${optimizationResults.improvements.carbon_improvement_percent.toFixed(1)}% Carbon Reduction`} color="success" icon={<TrendingUp />} />
+                <Chip label={`${optimizationResults.improvements.time_improvement_percent.toFixed(1)}% Time Reduction`} color="success" icon={<TrendingUp />} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
+      ) : (
+        <Box sx={{ textAlign: 'center' }}>
+          <Button variant="contained" size="large" startIcon={<CompareArrows />} onClick={runLiveOptimization}>
+            Run Live Optimization Comparison
+          </Button>
+        </Box>
+      )}
+
+      {optimizationResults && (
+        <Typography variant="h5" sx={{ textAlign: 'center', mt: 4, color: 'success.main', fontWeight: 'bold' }}>
+          🎉 25% Cost Reduction • 35% Carbon Reduction • 28% Time Saved
         </Typography>
-        
-        {loading ? (
-          <LoadingSpinner message="Verifying all systems..." />
-        ) : (
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mb: 4, flexWrap: 'wrap' }}>
-            <Card sx={{ minWidth: 200 }}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                {getStatusIcon(healthData?.health?.status || 'healthy')}
-                <Typography variant="h6" sx={{ mt: 1 }}>FastAPI Backend</Typography>
-                <Chip label={healthData?.health?.status || 'healthy'} color="success" size="small" />
-              </CardContent>
-            </Card>
-
-            <Card sx={{ minWidth: 200 }}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <CheckCircle color="success" />
-                <Typography variant="h6" sx={{ mt: 1 }}>Blockchain Network</Typography>
-                <Chip label={`ID: ${healthData?.blockchain?.network_id || 1337}`} color="success" size="small" />
-              </CardContent>
-            </Card>
-
-            <Card sx={{ minWidth: 200 }}>
-              <CardContent sx={{ textAlign: 'center' }}>
-                <CheckCircle color="success" />
-                <Typography variant="h6" sx={{ mt: 1 }}>Route Optimizer</Typography>
-                <Chip label="operational" color="success" size="small" />
-              </CardContent>
-            </Card>
-          </Box>
-        )}
-
-        <Typography variant="h5" color="success.main" sx={{ fontWeight: 'bold' }}>
-          ✅ All Systems Operational - Ready for Demo!
-        </Typography>
-      </Box>
-    );
-  };
-
-  // Step 3: Live Optimization (45 seconds)
-  const renderOptimizationStep = () => {
-    const runLiveOptimization = async () => {
-      setLoading(true);
-      try {
-        const comparison = await compareOptimizationMethods(DEMO_LOCATIONS, DEMO_VEHICLES);
-        setOptimizationResults(comparison);
-      } catch (error) {
-        // Mock results for demo
-        setOptimizationResults({
-          traditional_result: { total_cost: 847.50, total_carbon: 142.3, total_time: 420 },
-          quantum_inspired_result: { total_cost: 635.25, total_carbon: 92.4, total_time: 302 },
-          improvements: { 
-            cost_improvement_percent: 25.0, 
-            carbon_improvement_percent: 35.1, 
-            time_improvement_percent: 28.1 
-          },
-          winner: 'quantum_inspired' as const
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    useEffect(() => {
-      if (currentStep === 2 && !optimizationResults) {
-        runLiveOptimization();
-      }
-    }, [currentStep]);
-
-    return (
-      <Box sx={{ py: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
-          🛣️ Live Route Optimization Demo
-        </Typography>
-
-        <Typography variant="h6" sx={{ mb: 4, textAlign: 'center', color: 'text.secondary' }}>
-          NYC delivery scenario: 5 locations, 2 vehicles - Traditional vs Quantum-Inspired
-        </Typography>
-
-        {loading ? (
-          <LoadingSpinner message="Running optimization comparison..." />
-        ) : optimizationResults ? (
-          <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {/* Traditional Results */}
-            <Card sx={{ minWidth: 300 }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 2, color: 'text.secondary' }}>
-                  Traditional Routing
-                </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Typography>Cost: ${optimizationResults.traditional_result.total_cost.toFixed(2)}</Typography>
-                  <Typography>Carbon: {optimizationResults.traditional_result.total_carbon.toFixed(1)} kg CO₂</Typography>
-                  <Typography>Time: {Math.round(optimizationResults.traditional_result.total_time)} minutes</Typography>
-                </Box>
-              </CardContent>
-            </Card>
-
-            {/* Quantum Results */}
-            <Card sx={{ minWidth: 300, bgcolor: 'success.50', border: '2px solid', borderColor: 'success.main' }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <Typography variant="h6" color="success.main">Quantum-Inspired Routing</Typography>
-                  <Chip label="WINNER" color="success" size="small" />
-                </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Typography>Cost: ${optimizationResults.quantum_inspired_result.total_cost.toFixed(2)}</Typography>
-                  <Typography>Carbon: {optimizationResults.quantum_inspired_result.total_carbon.toFixed(1)} kg CO₂</Typography>
-                  <Typography>Time: {Math.round(optimizationResults.quantum_inspired_result.total_time)} minutes</Typography>
-                </Box>
-              </CardContent>
-            </Card>
-
-            {/* Improvements */}
-            <Card sx={{ minWidth: 300, bgcolor: 'primary.50' }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ mb: 2, color: 'primary.main' }}>Quantum Improvements</Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Chip label={`${optimizationResults.improvements.cost_improvement_percent.toFixed(1)}% Cost Reduction`} color="success" icon={<TrendingUp />} />
-                  <Chip label={`${optimizationResults.improvements.carbon_improvement_percent.toFixed(1)}% Carbon Reduction`} color="success" icon={<TrendingUp />} />
-                  <Chip label={`${optimizationResults.improvements.time_improvement_percent.toFixed(1)}% Time Reduction`} color="success" icon={<TrendingUp />} />
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
-        ) : (
-          <Box sx={{ textAlign: 'center' }}>
-            <Button variant="contained" size="large" startIcon={<CompareArrows />} onClick={runLiveOptimization}>
-              Run Live Optimization Comparison
-            </Button>
-          </Box>
-        )}
-
-        {optimizationResults && (
-          <Typography variant="h5" sx={{ textAlign: 'center', mt: 4, color: 'success.main', fontWeight: 'bold' }}>
-            🎉 25% Cost Reduction • 35% Carbon Reduction • 28% Time Saved
-          </Typography>
-        )}
-      </Box>
-    );
-  };
+      )}
+    </Box>
+  );
 
   // Step 4: Carbon Impact (20 seconds)
   const renderCarbonStep = () => {
-    const carbonSaved = 49.9; // kg CO2 from optimization
+    const carbonSaved = walmartNYCData?.savings_analysis?.carbon_saved_kg || 49.9;
     const environmentalEquivalents = {
       trees_planted: (carbonSaved / 21.77).toFixed(1),
       car_free_days: (carbonSaved / 12.6).toFixed(1),
@@ -408,11 +516,15 @@ const WalmartDemo: React.FC = () => {
     />
   );
 
-  // Step 6: Performance Showcase (20 seconds)
+  // Step 6: Performance Showcase (20 seconds) - Uses backend data
   const renderShowcaseStep = () => {
     const walmartScaleMetrics = {
-      annual_savings: '$1.58B',
-      carbon_reduction: '2.34M tons',
+      annual_savings: walmartNYCData?.walmart_scale_projection?.annual_cost_savings_usd 
+        ? `$${(walmartNYCData.walmart_scale_projection.annual_cost_savings_usd / 1000000000).toFixed(1)}B`
+        : '$1.58B',
+      carbon_reduction: walmartNYCData?.walmart_scale_projection?.annual_carbon_reduction_tons
+        ? `${(walmartNYCData.walmart_scale_projection.annual_carbon_reduction_tons / 1000000).toFixed(1)}M tons`
+        : '2.34M tons',
       time_efficiency: '28%',
       roi: '$4.2B over 5 years'
     };
@@ -591,6 +703,19 @@ const WalmartDemo: React.FC = () => {
         {error && (
           <Alert severity="warning" sx={{ mt: 2 }}>
             {error}
+          </Alert>
+        )}
+
+        {initialLoading && (
+          <Alert severity="info" sx={{ mt: 2 }}>
+            Loading Walmart NYC demo data from backend...
+          </Alert>
+        )}
+
+        {/* ✅ Show backend connection status */}
+        {walmartNYCData && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            ✅ Connected to backend demo service - Scenario: {walmartNYCData.scenario_name}
           </Alert>
         )}
       </Box>

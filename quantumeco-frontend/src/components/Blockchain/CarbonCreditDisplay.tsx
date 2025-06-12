@@ -37,6 +37,7 @@ export interface CarbonCredit {
 // CarbonCreditDisplayProps: Defines props accepted by the component.
 // Removed the 'credits' prop as the component fetches its own data.
 interface CarbonCreditDisplayProps {
+  carbonCredits?: CarbonCredit[];
   onTradeCredit?: (creditId: string) => void; // Changed to string based on common blockchain IDs
 }
 
