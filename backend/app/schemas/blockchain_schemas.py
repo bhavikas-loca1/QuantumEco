@@ -292,8 +292,12 @@ class ETTTokenDetails(BaseModel):
     token_id: int = Field(..., description="Token identifier")
     route_id: str = Field(..., description="Associated route")
     trust_score: int = Field(..., description="Trust score")
-    carbon_impact: float = Field(..., description="Carbon impact")
+    carbon_impact_kg: float = Field(..., description="Carbon impact in kg")  # ✅ Fixed field name
     sustainability_rating: int = Field(..., description="Sustainability rating")
-    is_active: bool = Field(..., description="Token active status")
+    token_status: str = Field(default="active", description="Token status")  # ✅ Changed from is_active
     owner: str = Field(..., description="Token owner address")
-    created_at: datetime = Field(..., description="Creation timestamp")
+    is_valid: bool = Field(default=True, description="Validity Status")  # ✅ Fixed syntax
+    created_at: str = Field(..., description="Creation timestamp")  # ✅ Changed to string
+    transaction_hash: Optional[str] = Field(None, description="Blockchain transaction hash")
+    environmental_impact_description: Optional[str] = Field(None, description="Impact description")
+

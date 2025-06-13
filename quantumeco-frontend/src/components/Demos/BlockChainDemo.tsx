@@ -67,7 +67,7 @@ const BlockchainDemo: React.FC<BlockchainDemoProps> = ({
 
         {/* Carbon Credits */}
         <Box sx={{ flex: 1 }}>
-          <CarbonCreditDisplay credits={carbonCredits} />
+          <CarbonCreditDisplay />
         </Box>
       </Box>
 
@@ -86,3 +86,5 @@ const BlockchainDemo: React.FC<BlockchainDemoProps> = ({
 };
 
 export default BlockchainDemo;
+
+

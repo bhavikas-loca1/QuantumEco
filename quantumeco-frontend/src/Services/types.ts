@@ -480,65 +480,58 @@ export interface SimulationResponse {
 export interface RouteComparisonResponse {
   comparison_id: string;
   quantum_inspired_result: {
-    status: 'success' | 'error' | 'no_solution';
-    optimized_routes: Array<{
-      vehicle_id: string;
-      route: number[]; // Array of location indices
-      distance_km: number;
-      time_minutes: number;
-      cost_usd: number;
-      carbon_kg: number;
-      load_kg: number;
-      utilization_percent: number;
-    }>;
-    total_distance: number;
-    total_time: number;
-    total_cost: number;
-    total_carbon: number;
-    processing_time: number;
-    quantum_score: number;
-    quantum_improvement?: number;
     method: 'quantum_inspired';
+    total_cost: number;
+    total_time: number;  // ✅ Updated field name
+    total_distance: number;   // ✅ Updated field name
+    total_carbon: number;     // ✅ Updated field name
+    routes: Array<{
+      route_id: string;
+      vehicle_id: string;
+      vehicle_type: string;
+      locations: any[];
+      route_segments: any[];
+      total_distance: number;
+      total_time: number;
+      total_cost: number;
+      total_carbon: number;
+      load_utilization_percent: number;
+      optimization_score: number;
+    }>;
+    processing_time: number;
+    quality_score: number;
   };
   traditional_result: {
-    status: 'success' | 'error' | 'no_solution';
-    optimized_routes: Array<{
-      vehicle_id: string;
-      route: number[]; // Array of location indices
-      distance_km: number;
-      time_minutes: number;
-      cost_usd: number;
-      carbon_kg: number;
-      load_kg: number;
-      utilization_percent: number;
-    }>;
-    total_distance: number;
-    total_time: number;
-    total_cost: number;
-    total_carbon: number;
-    processing_time: number;
-    quantum_score: number;
     method: 'traditional';
+    total_cost: number;
+    total_time: number;  // ✅ Updated field name
+    total_distance: number;   // ✅ Updated field name
+    total_carbon: number;     // ✅ Updated field name
+    routes: Array<{
+      route_id: string;
+      vehicle_id: string;
+      vehicle_type: string;
+      locations: any[];
+      route_segments: any[];
+      total_distance: number;
+      total_time: number;
+      total_cost: number;
+      total_carbon: number;
+      load_utilization_percent: number;
+      optimization_score: number;
+    }>;
+    processing_time: number;
+    quality_score: number;
   };
   improvements: {
-    cost_improvement_percent: number;
-    carbon_improvement_percent: number;
-    time_improvement_percent: number;
-    distance_improvement_percent: number;
-    overall_improvement_percent: number;
-    cost_saved_usd: number;
-    carbon_saved_kg: number;
-    time_saved_minutes: number;
-    distance_saved_km: number;
+    cost_improvement: number;
+    time_improvement: number;
+    distance_improvement: number;
+    carbon_improvement: number;
   };
   winner: 'quantum_inspired' | 'traditional' | 'tie';
-  comparison_timestamp: string;
-  algorithm_details: {
-    quantum_iterations: number;
-    quantum_tunnel_probability: number;
-    annealing_temperature: number;
-    convergence_achieved: boolean;
-  };
+  total_comparison_time_seconds: number;
+  created_at: string;
 }
 
 // Vehicle Profile Response - matches RouteOptimizer vehicle specifications

@@ -1,5 +1,6 @@
 // Services/blockchain.ts - Updated with better error handling
 
+import type { AxiosResponse } from 'axios';
 import { api } from './api';
 
 export interface BlockchainCertificate {
@@ -20,11 +21,12 @@ export interface EnvironmentalTrustToken {
   token_id: number;
   route_id: string;
   trust_score: number;
-  carbon_impact_kg: number;
+  carbon_impact: number;
   sustainability_rating: number;
-  transaction_hash: string;
-  block_number: number;
   created_at: string;
+  is_valid: boolean;
+  is_active: 'active';
+  transaction_hash: string;
 }
 
 export interface CarbonCredit {
@@ -103,15 +105,40 @@ export const createCarbonCredit = async (creditData: {
 };
 
 // Get ETT tokens
+// export const getETTTokens = async (limit: number = 10): Promise<EnvironmentalTrustToken[]> => {
+//   try {
+//     const response = await api.get(`/api/blockchain/ett/tokens?limit=${limit}`);
+//     return response.data.tokens || [];
+//   } catch (error) {
+//     console.error('Failed to get ETT tokens:', error);
+//     return [];
+//   }
+// };
+
+// ✅ Add ETT token fetching with proper error handling
 export const getETTTokens = async (limit: number = 10): Promise<EnvironmentalTrustToken[]> => {
   try {
-    const response = await api.get(`/api/blockchain/ett/tokens?limit=${limit}`);
-    return response.data.tokens || [];
+    const response: AxiosResponse<EnvironmentalTrustToken[]> = await api.get(`/api/blockchain/ett/tokens?limit=${limit}`);
+    
+    // ✅ Validate response data
+    if (!Array.isArray(response.data)) {
+      console.warn('ETT API returned non-array data:', response.data);
+      return [];
+    }
+    
+    // ✅ Filter and validate tokens
+    return response.data.filter(token => {
+      if (!token || typeof token !== 'object') return false;
+      if (!token.token_id && token.token_id !== 0) return false;
+      return true;
+    });
+    
   } catch (error) {
-    console.error('Failed to get ETT tokens:', error);
+    console.error('Failed to fetch ETT tokens:', error);
     return [];
   }
 };
+
 
 // Get carbon credits
 export const getCarbonCredits = async (limit: number = 10): Promise<CarbonCredit[]> => {

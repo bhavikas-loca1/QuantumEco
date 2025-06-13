@@ -422,12 +422,98 @@ async def get_route_details(route_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get route details: {str(e)}")
 
+# @router.post("/compare", response_model=RouteComparisonResponse)
+# async def compare_routes(request: RouteComparisonRequest):
+#     """Compare quantum-inspired vs traditional route optimization"""
+#     logger = logging.getLogger(__name__)
+    
+#     try:
+#         start_time = time.time()
+        
+#         # Run both optimizations
+#         quantum_result, traditional_result = await asyncio.gather(
+#             route_optimizer.optimize_multi_objective(
+#                 locations=[loc.dict() for loc in request.locations],
+#                 vehicles=[veh.dict() for veh in request.vehicles],
+#                 optimization_goals=request.optimization_goals.dict()
+#             ),
+#             route_optimizer.calculate_traditional_routing(
+#                 locations=[loc.dict() for loc in request.locations],
+#                 vehicles=[veh.dict() for veh in request.vehicles]
+#             )
+#         )
+        
+#         # ✅ FIX: Ensure proper structure and calculate real improvements
+#         def safe_improvement_calc(new_val, old_val):
+#             if old_val == 0:
+#                 return 0.0
+#             return round(((old_val - new_val) / old_val) * 100, 2)
+        
+#         improvements = {
+#             "cost_improvement": safe_improvement_calc(
+#                 quantum_result.get("total_cost", 0), 
+#                 traditional_result.get("total_cost", 0)
+#             ),
+#             "time_improvement": safe_improvement_calc(
+#                 quantum_result.get("total_time", 0), 
+#                 traditional_result.get("total_time", 0)
+#             ),
+#             "distance_improvement": safe_improvement_calc(
+#                 quantum_result.get("total_distance", 0), 
+#                 traditional_result.get("total_distance", 0)
+#             ),
+#             "carbon_improvement": safe_improvement_calc(
+#                 quantum_result.get("total_carbon", 0), 
+#                 traditional_result.get("total_carbon", 0)
+#             )
+#         }
+        
+#         # Calculate overall improvement
+#         overall_improvement = (
+#             improvements["cost_improvement"] + 
+#             improvements["time_improvement"] + 
+#             improvements["carbon_improvement"]
+#         ) / 3
+#         improvements["overall_improvement_percent"] = round(overall_improvement, 1)
+        
+#         response = RouteComparisonResponse(
+#             comparison_id=generate_route_id("comp"),
+#             quantum_inspired_result=MethodResult(
+#                 method="quantum_inspired",
+#                 total_cost=quantum_result.get("total_cost", 0),
+#                 total_time=quantum_result.get("total_time", 0),
+#                 total_distance=quantum_result.get("total_distance", 0),
+#                 total_carbon=quantum_result.get("total_carbon", 0),
+#                 routes=quantum_result.get("optimized_routes", []),
+#                 processing_time=quantum_result.get("processing_time", 0),
+#                 quality_score=quantum_result.get("quantum_score", 85)
+#             ),
+#             traditional_result=MethodResult(
+#                 method="traditional",
+#                 total_cost=traditional_result.get("total_cost", 0),
+#                 total_time=traditional_result.get("total_time", 0),
+#                 total_distance=traditional_result.get("total_distance", 0),
+#                 total_carbon=traditional_result.get("total_carbon", 0),
+#                 routes=traditional_result.get("routes", []),
+#                 processing_time=traditional_result.get("processing_time", 0),
+#                 quality_score=75.0
+#             ),
+#             improvements=improvements,
+#             winner="quantum_inspired" if overall_improvement > 0 else "traditional",
+#             total_comparison_time_seconds=round(time.time() - start_time, 2),
+#             created_at=datetime.utcnow()
+#         )
+        
+#         return response
+        
+#     except Exception as e:
+#         logger.error(f"Route comparison failed: {str(e)}", exc_info=True)
+#         raise HTTPException(status_code=500, detail=f"Route comparison failed: {str(e)}")
 
 @router.post("/compare", response_model=RouteComparisonResponse)
 async def compare_routes(request: RouteComparisonRequest):
     """
     Compare quantum-inspired vs traditional route optimization
-    Shows the benefits of using quantum-inspired algorithms
     """
     logger = logging.getLogger(__name__)
     
@@ -435,132 +521,103 @@ async def compare_routes(request: RouteComparisonRequest):
         logger.info(f"Starting route comparison with {len(request.locations)} locations and {len(request.vehicles)} vehicles")
         start_time = time.time()
         
-        # Log input data
-        logger.debug(f"Input locations: {[loc.dict() for loc in request.locations]}")
-        logger.debug(f"Input vehicles: {[veh.dict() for veh in request.vehicles]}")
-        logger.debug(f"Optimization goals: {request.optimization_goals}")
+        # Convert Pydantic objects to dicts
+        locations_dict = [loc.dict() for loc in request.locations]
+        vehicles_dict = [veh.dict() for veh in request.vehicles]
+        goals_dict = request.optimization_goals.dict()
         
         logger.info("Initiating parallel optimization tasks")
         # Run both optimizations concurrently
-        quantum_task = route_optimizer.optimize_multi_objective(
-            locations=request.locations,
-            vehicles=request.vehicles,
-            optimization_goals=request.optimization_goals
-        )
-        
-        traditional_task = route_optimizer.calculate_traditional_routing(
-            locations=request.locations,
-            vehicles=request.vehicles
-        )
-        
-        logger.info("Waiting for optimization tasks to complete")
         quantum_result, traditional_result = await asyncio.gather(
-            quantum_task, traditional_task
+            route_optimizer.optimize_multi_objective(
+                locations=locations_dict,
+                vehicles=vehicles_dict,
+                optimization_goals=goals_dict
+            ),
+            route_optimizer.calculate_traditional_routing(
+                locations=locations_dict,
+                vehicles=vehicles_dict
+            )
         )
         
-        # ✅ FIX: Ensure both results have required keys with fallbacks
-        def ensure_result_structure(result, method_name):
-            """Ensure optimization result has all required keys"""
-            if not isinstance(result, dict):
-                result = {}
-            
-            # Required keys with fallback values
-            required_keys = {
-                'routes': [],
-                'optimized_routes': [],  # For quantum results
-                'total_cost': 0.0,
-                'total_time': 0.0,
-                'total_distance': 0.0,
-                'total_carbon': 0.0,
-                'processing_time': 0.0
-            }
-            
-            for key, default_value in required_keys.items():
-                if key not in result:
-                    result[key] = default_value
-                    logger.warning(f"Missing '{key}' in {method_name} result, using default: {default_value}")
-            
-            # Ensure routes key is consistent
-            if 'optimized_routes' in result and not result['routes']:
-                result['routes'] = result['optimized_routes']
-            elif 'routes' in result and not result.get('optimized_routes'):
-                result['optimized_routes'] = result['routes']
-                
-            return result
+        logger.info("Both optimizations completed, calculating improvements")
         
-        # Apply structure fixes
-        quantum_result = ensure_result_structure(quantum_result, "quantum")
-        traditional_result = ensure_result_structure(traditional_result, "traditional")
-        
-        logger.info("Both optimizations completed, calculating carbon emissions")
-        logger.debug(f"Quantum result: {quantum_result}")
-        logger.debug(f"Traditional result: {traditional_result}")
-        
-        # Calculate carbon emissions with error handling
-        try:
-            quantum_carbon = await carbon_calculator.calculate_batch_emissions(
-                routes=quantum_result.get("optimized_routes", [])
-            )
-        except Exception as e:
-            logger.warning(f"Quantum carbon calculation failed: {e}, using fallback")
-            quantum_carbon = {"total_emissions": quantum_result.get("total_carbon", 0)}
-        
-        try:
-            traditional_carbon = await carbon_calculator.calculate_batch_emissions(
-                routes=traditional_result.get("routes", [])
-            )
-        except Exception as e:
-            logger.warning(f"Traditional carbon calculation failed: {e}, using fallback")
-            traditional_carbon = {"total_emissions": traditional_result.get("total_carbon", 0)}
-        
-        # ✅ FIX: Safe improvement calculations with division by zero protection
-        def safe_percentage(new_val, old_val):
-            """Calculate percentage improvement safely"""
+        # ✅ FIX: Safe improvement calculations
+        def safe_improvement_calc(new_val, old_val):
             if old_val == 0:
                 return 0.0
             return round(((old_val - new_val) / old_val) * 100, 2)
         
         improvements = {
-            "cost_improvement": safe_percentage(
-                quantum_result["total_cost"], 
-                traditional_result["total_cost"]
+            "cost_improvement": safe_improvement_calc(
+                quantum_result.get("total_cost", 0), 
+                traditional_result.get("total_cost", 0)
             ),
-            "time_improvement": safe_percentage(
-                quantum_result["total_time"], 
-                traditional_result["total_time"]
+            "time_improvement": safe_improvement_calc(
+                quantum_result.get("total_time", 0), 
+                traditional_result.get("total_time", 0)
             ),
-            "distance_improvement": safe_percentage(
-                quantum_result["total_distance"], 
-                traditional_result["total_distance"]
+            "distance_improvement": safe_improvement_calc(
+                quantum_result.get("total_distance", 0), 
+                traditional_result.get("total_distance", 0)
             ),
-            "carbon_improvement": safe_percentage(
-                quantum_carbon["total_emissions"], 
-                traditional_carbon["total_emissions"]
+            "carbon_improvement": safe_improvement_calc(
+                quantum_result.get("total_carbon", 0), 
+                traditional_result.get("total_carbon", 0)
             )
         }
         
         logger.info(f"Calculated improvements: {improvements}")
         
-        # Build response with proper field mapping
+        # ✅ FIX: Ensure routes have all required fields before creating MethodResult
+        def ensure_route_fields(routes):
+            """Ensure each route has all required fields for MethodResult schema"""
+            fixed_routes = []
+            for route in routes:
+                fixed_route = {
+                    "route_id": route.get("route_id", f"route_{uuid.uuid4().hex[:8]}"),
+                    "vehicle_id": route.get("vehicle_id", "unknown"),
+                    "vehicle_type": route.get("vehicle_type", "electric_van"),
+                    "locations": route.get("locations", []),
+                    "route_segments": route.get("route_segments", []),
+                    "total_distance": float(route.get("total_distance", route.get("distance_km", 0))),
+                    "total_time": float(route.get("total_time", route.get("time_minutes", 0))),
+                    "total_cost": float(route.get("total_cost", route.get("cost_usd", 0))),
+                    "total_carbon": float(route.get("total_carbon", route.get("carbon_kg", 0))),
+                    "load_utilization_percent": float(route.get("load_utilization_percent", route.get("utilization_percent", 0))),
+                    "route_geometry": route.get("route_geometry"),
+                    "optimization_score": float(route.get("optimization_score", 85)),
+                    "estimated_start_time": route.get("estimated_start_time"),
+                    "estimated_end_time": route.get("estimated_end_time"),
+                    "special_instructions": route.get("special_instructions", [])
+                }
+                fixed_routes.append(fixed_route)
+            return fixed_routes
+        
+        # Fix routes for both results
+        quantum_routes = ensure_route_fields(quantum_result.get("optimized_routes", []))
+        traditional_routes = ensure_route_fields(traditional_result.get("routes", []))
+        
+        # ✅ FIX: Build response with CORRECT field names for MethodResult
         response = RouteComparisonResponse(
-            comparison_id=generate_route_id(),
+            comparison_id=generate_route_id("comp"),
             quantum_inspired_result=MethodResult(
                 method="quantum_inspired",
-                total_cost=quantum_result["total_cost"],
-                total_time=quantum_result["total_time"],
-                total_distance=quantum_result["total_distance"],
-                total_carbon=quantum_carbon["total_emissions"],
-                routes=quantum_result["optimized_routes"],
+                total_cost=quantum_result.get("total_cost", 0),
+                total_time=quantum_result.get("total_time", 0),  # ✅ CORRECT field name
+                total_distance=quantum_result.get("total_distance", 0),  # ✅ CORRECT field name
+                total_carbon=quantum_result.get("total_carbon", 0),  # ✅ CORRECT field name
+                routes=quantum_routes,
                 processing_time=quantum_result.get("processing_time", 0),
-                quality_score=quantum_result.get("quantum_improvement_score", 85)
+                quality_score=quantum_result.get("quantum_score", 85)
             ),
             traditional_result=MethodResult(
                 method="traditional",
-                total_cost=traditional_result["total_cost"],
-                total_time=traditional_result["total_time"],
-                total_distance=traditional_result["total_distance"],
-                total_carbon=traditional_carbon["total_emissions"],
-                routes=traditional_result["routes"],
+                total_cost=traditional_result.get("total_cost", 0),
+                total_time=traditional_result.get("total_time", 0),  # ✅ CORRECT field name
+                total_distance=traditional_result.get("total_distance", 0),  # ✅ CORRECT field name
+                total_carbon=traditional_result.get("total_carbon", 0),  # ✅ CORRECT field name
+                routes=traditional_routes,
                 processing_time=traditional_result.get("processing_time", 0),
                 quality_score=75.0
             ),
@@ -576,6 +633,7 @@ async def compare_routes(request: RouteComparisonRequest):
     except Exception as e:
         logger.error(f"Route comparison failed with error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Route comparison failed: {str(e)}")
+
 
 @router.post("/recalculate")
 async def recalculate_route(request: RouteRecalculationRequest):

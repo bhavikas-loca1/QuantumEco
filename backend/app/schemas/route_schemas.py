@@ -245,9 +245,9 @@ class MethodResult(BaseModel):
     """Results for a specific optimization method"""
     method: str = Field(..., description="Optimization method name")
     total_cost: float = Field(..., ge=0, description="Total cost")
-    total_time: float = Field(..., ge=0, description="Total time")
-    total_distance: float = Field(..., ge=0, description="Total distance")
-    total_carbon: float = Field(..., ge=0, description="Total carbon emissions")
+    total_time: float = Field(..., ge=0, description="Total time in minutes")  # ✅ CORRECT field name
+    total_distance: float = Field(..., ge=0, description="Total distance in km")  # ✅ CORRECT field name
+    total_carbon: float = Field(..., ge=0, description="Total carbon emissions in kg")  # ✅ CORRECT field name
     routes: List[OptimizedRoute] = Field(..., description="Optimized routes")
     processing_time: float = Field(..., ge=0, description="Processing time")
     quality_score: float = Field(..., ge=0, le=100, description="Solution quality score")
