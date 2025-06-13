@@ -48,6 +48,7 @@ function TabPanel(props: TabPanelProps) {
 
 const CertificateViewer: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
+  // ✅ FIXED: Ensure proper array initialization
   const [certificates, setCertificates] = useState<any[]>([]);
   const [ettTokens, setEttTokens] = useState<ETTToken[]>([]);
   const [carbonCredits, setCarbonCredits] = useState<any[]>([]);
@@ -64,9 +65,10 @@ const CertificateViewer: React.FC = () => {
       setError(null);
       
       const certs = await getRecentCertificates(10);
-      setCertificates(certs || []);
+      // ✅ FIXED: Ensure we always set an array
+      setCertificates(Array.isArray(certs) ? certs : []);
       
-      // ✅ FIXED: Sample ETT tokens with proper data structure
+      // Sample ETT tokens
       setEttTokens([
         {
           token_id: 1001,
@@ -118,7 +120,7 @@ const CertificateViewer: React.FC = () => {
       console.error('Failed to load certificate data:', error);
       setError(`Failed to load data: ${error.message || 'Unknown error'}`);
       
-      // ✅ FIXED: Set empty arrays as fallback
+      // Always set empty arrays as fallback
       setCertificates([]);
       setEttTokens([]);
       setCarbonCredits([]);
@@ -131,29 +133,46 @@ const CertificateViewer: React.FC = () => {
     setTabValue(newValue);
   };
 
+  // ✅ FIXED: Completely rewritten to prevent glitches and auto-tab switching
   const handleCertificateCreated = (newCertificate: any) => {
     console.log('New certificate created:', newCertificate);
     
-    // ✅ FIXED: Safe certificate handling
-    if (newCertificate.certificate) {
-      setCertificates(prev => [newCertificate.certificate, ...prev]);
-    }
-    
-    // Add corresponding ETT token
-    if (newCertificate.ettToken) {
-      setEttTokens(prev => [newCertificate.ettToken, ...prev]);
-    }
+    try {
+      // ✅ FIXED: Safe array updates with proper validation
+      if (newCertificate?.certificate) {
+        setCertificates(currentCerts => {
+          const validCerts = Array.isArray(currentCerts) ? currentCerts : [];
+          return [newCertificate.certificate, ...validCerts];
+        });
+      }
+      
+      // Add corresponding ETT token
+      if (newCertificate?.ettToken) {
+        setEttTokens(currentTokens => {
+          const validTokens = Array.isArray(currentTokens) ? currentTokens : [];
+          return [newCertificate.ettToken, ...validTokens];
+        });
+      }
 
-    // Add corresponding carbon credit
-    if (newCertificate.carbonCredit) {
-      setCarbonCredits(prev => [newCertificate.carbonCredit, ...prev]);
-    }
+      // Add corresponding carbon credit
+      if (newCertificate?.carbonCredit) {
+        setCarbonCredits(currentCredits => {
+          const validCredits = Array.isArray(currentCredits) ? currentCredits : [];
+          return [newCertificate.carbonCredit, ...validCredits];
+        });
+      }
 
-    // ✅ FIXED: Auto-switch to Network Status tab to show the new certificate
-    setTabValue(1);
+      // ✅ FIXED: REMOVED auto tab switching - let user stay on current tab
+      // setTabValue(1); // <-- This was causing the unwanted tab switch!
+      
+      console.log('✅ Certificate added successfully without switching tabs');
+      
+    } catch (err) {
+      console.error('Error handling certificate creation:', err);
+      setError('Failed to add new certificate to display');
+    }
   };
 
-  // ✅ FIXED: Better route data with validation
   const generateSampleRouteData = () => {
     const timestamp = Date.now();
     return {
@@ -162,18 +181,17 @@ const CertificateViewer: React.FC = () => {
       carbon_saved: 44.7,
       cost_saved: 131.79,
       distance_km: 125.4,
-      optimization_score: 94, // Integer value to prevent 422 errors
+      optimization_score: 94,
     };
   };
 
   const sampleRouteData = generateSampleRouteData();
 
   return (
-    // FIXED: Using DemoPage pattern - full viewport width with proper overflow control
     <Box sx={{ 
-      width: '100vw', // Use full viewport width like DemoPage
+      width: '100vw',
       minHeight: '100vh',
-      overflow: 'hidden', // Prevent horizontal scroll like DemoPage
+      overflow: 'hidden',
       boxSizing: 'border-box'
     }}>
       <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, py: 3 }}>
@@ -188,17 +206,17 @@ const CertificateViewer: React.FC = () => {
           
           <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <Chip 
-              label={`${certificates.length} Certificates`} 
+              label={`${Array.isArray(certificates) ? certificates.length : 0} Certificates`} 
               color="primary" 
               icon={<VerifiedOutlined />}
             />
             <Chip 
-              label={`${ettTokens.length} ETT Tokens`} 
+              label={`${Array.isArray(ettTokens) ? ettTokens.length : 0} ETT Tokens`} 
               color="success" 
               icon={<NatureOutlined />}
             />
             <Chip 
-              label={`${carbonCredits.length} Carbon Credits`} 
+              label={`${Array.isArray(carbonCredits) ? carbonCredits.length : 0} Carbon Credits`} 
               color="info" 
               icon={<AccountBalanceWalletOutlined />}
             />
@@ -260,7 +278,6 @@ const CertificateViewer: React.FC = () => {
               Perfect for the 30-second blockchain segment of your demo.
             </Typography>
             
-            {/* ✅ FIXED: Show current route data being used */}
             <Alert severity="info" sx={{ mb: 3 }}>
               <Typography variant="body2">
                 <strong>Demo Route Data:</strong> {sampleRouteData.route_id} | 
@@ -270,10 +287,20 @@ const CertificateViewer: React.FC = () => {
               </Typography>
             </Alert>
             
+            {/* ✅ FIXED: Success message will now show without switching tabs */}
             <LiveCertificateGenerator 
               routeData={sampleRouteData}
               onCertificateCreated={handleCertificateCreated}
             />
+            
+            {/* ✅ ADDED: Success indicator when certificate is created */}
+            {certificates.length > 0 && (
+              <Alert severity="success" sx={{ mt: 3 }}>
+                <Typography variant="body2">
+                  ✅ Latest certificate generated! View it in the Network Status tab or continue generating more certificates here.
+                </Typography>
+              </Alert>
+            )}
           </TabPanel>
 
           {/* Tab 1: Blockchain Network Status */}

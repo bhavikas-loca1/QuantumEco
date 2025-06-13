@@ -51,6 +51,22 @@ interface RouteResultsProps {
   vehicles: Vehicle[];
 }
 
+// ONLY FIX: Safe toFixed function to handle JavaScript rounding errors
+const safeToFixed = (value: any, decimals: number = 2): string => {
+  if (value === null || value === undefined || typeof value !== 'number' || isNaN(value)) {
+    return '0.00';
+  }
+  
+  // Fix for JavaScript toFixed() rounding errors
+  const valueStr = value.toString();
+  if (valueStr.includes('.')) {
+    const fixedValue = Number(valueStr + '1').toFixed(decimals);
+    return fixedValue;
+  }
+  
+  return value.toFixed(decimals);
+};
+
 /**
  * RouteResults Component  
  * Purpose: Display optimization results matching actual backend RouteOptimizer response
@@ -72,11 +88,11 @@ const RouteResults: React.FC<RouteResultsProps> = ({
   };
 
   const formatDistance = (km: number) => {
-    return `${km.toFixed(1)} km`;
+    return `${safeToFixed(km, 1)} km`;
   };
 
   const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
+    return `$${safeToFixed(amount, 2)}`;
   };
 
   // ✅ Fixed: Handle location lookup by index (as returned by backend)
@@ -117,7 +133,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                   icon={<CheckCircleOutlined />}
                 />
                 <Chip 
-                  label={`${optimizationResult.processing_time.toFixed(1)}s`} 
+                  label={`${safeToFixed(optimizationResult.processing_time, 1)}s`} 
                   variant="outlined" 
                   icon={<AccessTimeOutlined />}
                 />
@@ -158,7 +174,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                     <Co2Outlined />
                   </Avatar>
                   <Typography variant="h4" color="info.main" sx={{ fontWeight: 'bold' }}>
-                    {optimizationResult.total_carbon.toFixed(1)} kg
+                    {safeToFixed(optimizationResult.total_carbon, 1)} kg
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Carbon Emissions
@@ -218,7 +234,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                     }}
                   />
                   <Typography variant="h6" color="primary.main" sx={{ minWidth: 80 }}>
-                    {optimizationResult.quantum_improvement_score.toFixed(1)}%
+                    {safeToFixed(optimizationResult.quantum_improvement_score, 1)}%
                   </Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary">
@@ -247,7 +263,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                         {formatCurrency(optimizationResult.savings_analysis.cost_saved_usd)}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Cost Saved ({optimizationResult.savings_analysis.cost_improvement_percent.toFixed(1)}% improvement)
+                        Cost Saved ({safeToFixed(optimizationResult.savings_analysis.cost_improvement_percent, 1)}% improvement)
                       </Typography>
                     </CardContent>
                   </Card>
@@ -255,10 +271,10 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                   <Card variant="outlined" sx={{ flex: 1, bgcolor: 'info.50' }}>
                     <CardContent sx={{ py: 2 }}>
                       <Typography variant="h5" color="info.main" sx={{ fontWeight: 'bold' }}>
-                        {optimizationResult.savings_analysis.carbon_saved_kg.toFixed(1)} kg
+                        {safeToFixed(optimizationResult.savings_analysis.carbon_saved_kg, 1)} kg
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Carbon Saved ({optimizationResult.savings_analysis.carbon_improvement_percent.toFixed(1)}% improvement)
+                        Carbon Saved ({safeToFixed(optimizationResult.savings_analysis.carbon_improvement_percent, 1)}% improvement)
                       </Typography>
                     </CardContent>
                   </Card>
@@ -269,7 +285,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                         {formatDuration(optimizationResult.savings_analysis.time_saved_minutes)}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Time Saved ({optimizationResult.savings_analysis.time_improvement_percent.toFixed(1)}% improvement)
+                        Time Saved ({safeToFixed(optimizationResult.savings_analysis.time_improvement_percent, 1)}% improvement)
                       </Typography>
                     </CardContent>
                   </Card>
@@ -320,7 +336,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Carbon:</Typography>
                       <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                        {(comparisonResult.traditional_result.total_carbon || 0).toFixed(1)} kg
+                        {safeToFixed(comparisonResult.traditional_result.total_carbon || 0, 1)} kg
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -338,7 +354,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Processing:</Typography>
                       <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                        {(comparisonResult.traditional_result.processing_time || 0).toFixed(1)}s
+                        {safeToFixed(comparisonResult.traditional_result.processing_time || 0, 1)}s
                       </Typography>
                     </Box>
                   </Box>
@@ -373,7 +389,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Carbon:</Typography>
                       <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                        {(comparisonResult.quantum_inspired_result.total_carbon || 0).toFixed(1)} kg
+                        {safeToFixed(comparisonResult.quantum_inspired_result.total_carbon || 0, 1)} kg
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -391,14 +407,14 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Processing:</Typography>
                       <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                        {(comparisonResult.quantum_inspired_result.processing_time || 0).toFixed(1)}s
+                        {safeToFixed(comparisonResult.quantum_inspired_result.processing_time || 0, 1)}s
                       </Typography>
                     </Box>
                     {comparisonResult.quantum_inspired_result.quantum_score && (
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">Quantum Score:</Typography>
                         <Chip 
-                          label={`${comparisonResult.quantum_inspired_result.quantum_score.toFixed(0)}%`} 
+                          label={`${safeToFixed(comparisonResult.quantum_inspired_result.quantum_score, 0)}%`} 
                           size="small" 
                           color="success"
                         />
@@ -419,32 +435,32 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">Cost Improvement:</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                          {comparisonResult.improvements.cost_improvement_percent.toFixed(1)}%
+                          {safeToFixed(comparisonResult.improvements.cost_improvement_percent, 1)}%
                         </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">Carbon Reduction:</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                          {comparisonResult.improvements.carbon_improvement_percent.toFixed(1)}%
+                          {safeToFixed(comparisonResult.improvements.carbon_improvement_percent, 1)}%
                         </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">Time Reduction:</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                          {comparisonResult.improvements.time_improvement_percent.toFixed(1)}%
+                          {safeToFixed(comparisonResult.improvements.time_improvement_percent, 1)}%
                         </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">Distance Saved:</Typography>
                         <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                          {comparisonResult.improvements.distance_improvement_percent.toFixed(1)}%
+                          {safeToFixed(comparisonResult.improvements.distance_improvement_percent, 1)}%
                         </Typography>
                       </Box>
                       <Divider sx={{ my: 1 }} />
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" color="text.secondary">Overall:</Typography>
                         <Chip 
-                          label={`${comparisonResult.improvements.overall_improvement_percent.toFixed(1)}% better`} 
+                          label={`${safeToFixed(comparisonResult.improvements.overall_improvement_percent, 1)}% better`} 
                           size="small" 
                           color="success"
                           icon={<TrendingUp />}
@@ -473,12 +489,12 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                           Quantum Iterations: <strong>{comparisonResult.algorithm_details.quantum_iterations}</strong>
                         </Typography>
                         <Typography variant="body2" color="text.secondary" gutterBottom>
-                          Tunnel Probability: <strong>{(comparisonResult.algorithm_details.quantum_tunnel_probability * 100).toFixed(1)}%</strong>
+                          Tunnel Probability: <strong>{safeToFixed(comparisonResult.algorithm_details.quantum_tunnel_probability * 100, 1)}%</strong>
                         </Typography>
                       </Box>
                       <Box sx={{ flex: 1 }}>
                         <Typography variant="body2" color="text.secondary" gutterBottom>
-                          Annealing Temperature: <strong>{comparisonResult.algorithm_details.annealing_temperature.toFixed(1)}°</strong>
+                          Annealing Temperature: <strong>{safeToFixed(comparisonResult.algorithm_details.annealing_temperature, 1)}°</strong>
                         </Typography>
                         <Typography variant="body2" color="text.secondary" gutterBottom>
                           Convergence: <strong>{comparisonResult.algorithm_details.convergence_achieved ? 'Achieved' : 'Partial'}</strong>
@@ -566,7 +582,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                         <TableCell align="right">{formatDistance(route.distance_km)}</TableCell>
                         <TableCell align="right">{formatDuration(route.time_minutes)}</TableCell>
                         <TableCell align="right">{formatCurrency(route.cost_usd)}</TableCell>
-                        <TableCell align="right">{route.carbon_kg.toFixed(1)} kg</TableCell>
+                        <TableCell align="right">{safeToFixed(route.carbon_kg, 1)} kg</TableCell>
                         <TableCell align="right">
                           <Typography variant="body2">{route.load_kg || 0} kg</Typography>
                         </TableCell>
@@ -579,7 +595,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
                               color={route.utilization_percent > 90 ? 'error' : route.utilization_percent > 70 ? 'warning' : 'success'}
                             />
                             <Typography variant="caption" color="text.secondary">
-                              {route.utilization_percent.toFixed(0)}%
+                              {safeToFixed(route.utilization_percent, 0)}%
                             </Typography>
                           </Box>
                         </TableCell>
@@ -604,7 +620,7 @@ const RouteResults: React.FC<RouteResultsProps> = ({
               <>Your routes have been optimized using quantum-inspired algorithms. </>
             )}
             {comparisonResult && (
-              <>Method comparison shows quantum-inspired routing outperformed traditional methods by {comparisonResult.improvements?.overall_improvement_percent?.toFixed(1)}%. </>
+              <>Method comparison shows quantum-inspired routing outperformed traditional methods by {safeToFixed(comparisonResult.improvements?.overall_improvement_percent || 0, 1)}%. </>
             )}
             {optimizationResult?.certificates && optimizationResult.certificates.length > 0 && 
               `${optimizationResult.certificates.length} blockchain certificate(s) have been generated for verification.`

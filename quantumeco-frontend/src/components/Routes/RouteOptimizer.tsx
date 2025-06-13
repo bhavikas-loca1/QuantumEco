@@ -763,6 +763,7 @@ import {
   Science,
   TrendingUp,
   Refresh,
+  Warning,
 } from '@mui/icons-material';
 import LoadingSpinner from '../Common/LoadingSpinner';
 import RouteResults from './RouteResults';
@@ -783,10 +784,10 @@ import type {
 } from '../../Services/types';
 
 /**
- * RouteOptimizer Component - FIXED for full-width display
+ * RouteOptimizer Component - FIXED for full-width display with enhanced validation
  * Purpose: Main interface for route optimization with dynamic vehicle profile loading
- * Features: Dynamic form inputs, optimization goals, method comparison, real vehicle profiles
- * FIXED: Applied DemoPage sizing patterns for proper full-screen coverage
+ * Features: Dynamic form inputs, optimization goals validation, method comparison, real vehicle profiles
+ * FIXED: Applied DemoPage sizing patterns + optimization goals validation
  */
 const RouteOptimizer: React.FC = () => {
   // State management
@@ -824,6 +825,10 @@ const RouteOptimizer: React.FC = () => {
     time: 0.2,
   });
 
+  // ENHANCED: Add validation states for optimization goals
+  const [goalsValid, setGoalsValid] = useState(true);
+  const [goalsError, setGoalsError] = useState<string>('');
+
   const [vehicleProfiles, setVehicleProfiles] = useState<VehicleProfileResponse | null>(null);
   const [profilesLoading, setProfilesLoading] = useState(false);
   const [profilesError, setProfilesError] = useState<string | null>(null);
@@ -845,6 +850,11 @@ const RouteOptimizer: React.FC = () => {
     loadVehicleProfiles();
   }, []);
 
+  // ENHANCED: Validate optimization goals whenever they change
+  useEffect(() => {
+    validateOptimizationGoals();
+  }, [optimizationGoals]);
+
   const loadVehicleProfiles = async () => {
     try {
       setProfilesLoading(true);
@@ -860,6 +870,24 @@ const RouteOptimizer: React.FC = () => {
       console.error('❌ Vehicle profiles loading failed:', err);
     } finally {
       setProfilesLoading(false);
+    }
+  };
+
+  // ENHANCED: Comprehensive validation for optimization goals
+  const validateOptimizationGoals = () => {
+    const total = Object.values(optimizationGoals).reduce((sum, val) => sum + val, 0);
+    const tolerance = 0.001; // Tighter tolerance for better validation
+    
+    if (Math.abs(total - 1.0) <= tolerance) {
+      setGoalsValid(true);
+      setGoalsError('');
+    } else {
+      setGoalsValid(false);
+      if (total > 1.0) {
+        setGoalsError(`Total exceeds 1.0 (currently ${total.toFixed(3)}). Please reduce values.`);
+      } else {
+        setGoalsError(`Total is less than 1.0 (currently ${total.toFixed(3)}). Please increase values.`);
+      }
     }
   };
 
@@ -1010,6 +1038,22 @@ const RouteOptimizer: React.FC = () => {
     ));
   };
 
+  // ENHANCED: Update optimization goal with real-time validation
+  const updateOptimizationGoal = (key: keyof OptimizationGoals, value: number) => {
+    // Allow any input but don't restrict based on total
+    const newGoals = { ...optimizationGoals, [key]: Math.max(0, Math.min(1, value)) };
+    setOptimizationGoals(newGoals);
+  };
+
+  // ENHANCED: Reset goals to valid defaults
+  const resetGoalsToDefault = () => {
+    setOptimizationGoals({
+      cost: 0.4,
+      carbon: 0.4,
+      time: 0.2,
+    });
+  };
+
   // Run optimization
   const runOptimization = async () => {
     try {
@@ -1042,22 +1086,16 @@ const RouteOptimizer: React.FC = () => {
     }
   };
 
-  // Validate optimization goals sum to 1.0
-  const updateOptimizationGoal = (key: keyof OptimizationGoals, value: number) => {
-    const newGoals = { ...optimizationGoals, [key]: value };
-    const total = Object.values(newGoals).reduce((sum, val) => sum + val, 0);
-    
-    if (Math.abs(total - 1.0) <= 0.01) {
-      setOptimizationGoals(newGoals);
-    }
+  // ENHANCED: Check if optimization can be run
+  const canRunOptimization = () => {
+    return goalsValid && locations.length >= 2 && !optimizing && !comparing;
   };
 
   return (
-    // FIXED: Using DemoPage pattern - full viewport width with proper overflow control
     <Box sx={{ 
-      width: '100vw', // Use full viewport width like DemoPage
+      width: '100vw',
       minHeight: '100vh',
-      overflow: 'hidden', // Prevent horizontal scroll like DemoPage
+      overflow: 'hidden',
       boxSizing: 'border-box'
     }}>
       <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, py: 3 }}>
@@ -1138,14 +1176,23 @@ const RouteOptimizer: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Optimization Goals */}
+          {/* ENHANCED: Optimization Goals with Validation */}
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <TrendingUp />
                 Optimization Goals (must sum to 1.0)
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, mt: 2 }}>
+              
+              {/* Goals Input Section */}
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: { xs: 'column', md: 'row' }, 
+                gap: 3, 
+                mt: 2,
+                overflowX: 'visible', // Fix scroll issue
+                overflowY: 'visible'  // Fix scroll issue
+              }}>
                 <TextField
                   label="Cost Weight"
                   type="number"
@@ -1153,6 +1200,7 @@ const RouteOptimizer: React.FC = () => {
                   onChange={(e) => updateOptimizationGoal('cost', parseFloat(e.target.value) || 0)}
                   inputProps={{ min: 0, max: 1, step: 0.1 }}
                   sx={{ flex: 1 }}
+                  error={!goalsValid}
                 />
                 <TextField
                   label="Carbon Weight"
@@ -1161,6 +1209,7 @@ const RouteOptimizer: React.FC = () => {
                   onChange={(e) => updateOptimizationGoal('carbon', parseFloat(e.target.value) || 0)}
                   inputProps={{ min: 0, max: 1, step: 0.1 }}
                   sx={{ flex: 1 }}
+                  error={!goalsValid}
                 />
                 <TextField
                   label="Time Weight"
@@ -1169,11 +1218,66 @@ const RouteOptimizer: React.FC = () => {
                   onChange={(e) => updateOptimizationGoal('time', parseFloat(e.target.value) || 0)}
                   inputProps={{ min: 0, max: 1, step: 0.1 }}
                   sx={{ flex: 1 }}
+                  error={!goalsValid}
                 />
               </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                Total: {Object.values(optimizationGoals).reduce((sum, val) => sum + val, 0).toFixed(2)}
-              </Typography>
+
+              {/* Enhanced Status Display */}
+              <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Total: {Object.values(optimizationGoals).reduce((sum, val) => sum + val, 0).toFixed(3)}
+                  </Typography>
+                  
+                  {goalsValid ? (
+                    <Chip 
+                      label="✓ Valid" 
+                      color="success" 
+                      size="small" 
+                      icon={<TrendingUp />}
+                    />
+                  ) : (
+                    <Chip 
+                      label="⚠ Invalid" 
+                      color="error" 
+                      size="small" 
+                      icon={<Warning />}
+                    />
+                  )}
+                </Box>
+
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={resetGoalsToDefault}
+                  disabled={optimizing || comparing}
+                >
+                  Reset to Default
+                </Button>
+              </Box>
+
+              {/* Enhanced Error Display */}
+              {!goalsValid && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    Invalid Optimization Goals
+                  </Typography>
+                  <Typography variant="body2">
+                    {goalsError}
+                  </Typography>
+                  <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                    The sum of all weights must equal exactly 1.0 for proper optimization.
+                  </Typography>
+                </Alert>
+              )}
+
+              {goalsValid && (
+                <Alert severity="success" sx={{ mt: 2 }}>
+                  <Typography variant="body2">
+                    ✅ Optimization goals are properly configured. Ready to run optimization!
+                  </Typography>
+                </Alert>
+              )}
             </CardContent>
           </Card>
 
@@ -1419,7 +1523,7 @@ const RouteOptimizer: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
+          {/* ENHANCED: Action Buttons with Validation */}
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3, alignItems: 'center' }}>
@@ -1428,7 +1532,7 @@ const RouteOptimizer: React.FC = () => {
                   size="large"
                   startIcon={optimizing ? <LoadingSpinner /> : <Science />}
                   onClick={runOptimization}
-                  disabled={optimizing || comparing || locations.length < 2}
+                  disabled={!canRunOptimization()}
                   sx={{ flex: 1, py: 2 }}
                 >
                   {optimizing ? 'Optimizing Routes...' : 'Run Quantum Optimization'}
@@ -1446,9 +1550,24 @@ const RouteOptimizer: React.FC = () => {
                 </Button>
               </Box>
               
-              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>
-                Minimum 2 locations required for optimization
-              </Typography>
+              {/* Enhanced status messages */}
+              <Box sx={{ textAlign: 'center', mt: 2 }}>
+                {!goalsValid && (
+                  <Typography variant="body2" color="error" sx={{ fontWeight: 'bold' }}>
+                    ⚠ Fix optimization goals (must sum to 1.0) to enable optimization
+                  </Typography>
+                )}
+                {goalsValid && locations.length < 2 && (
+                  <Typography variant="body2" color="text.secondary">
+                    Minimum 2 locations required for optimization
+                  </Typography>
+                )}
+                {goalsValid && locations.length >= 2 && (
+                  <Typography variant="body2" color="success.main">
+                    ✅ Ready to run optimization
+                  </Typography>
+                )}
+              </Box>
             </CardContent>
           </Card>
 
