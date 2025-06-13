@@ -1098,15 +1098,25 @@ const RouteOptimizer: React.FC = () => {
       overflow: 'hidden',
       boxSizing: 'border-box'
     }}>
+       <Box sx={{ height: 24 }} /> {/* Adds 24px vertical space */}
       <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, py: 3 }}>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 1 }}>
             🛣️ Quantum Route Optimizer
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          {/* <Typography variant="body1" color="text.secondary">
             Configure locations and vehicles for quantum-inspired route optimization
-          </Typography>
+          </Typography> */}
+          <Typography 
+  variant="body1" 
+  color="text.secondary"
+  align="center"
+>
+  Configure locations and vehicles for quantum-inspired route optimization
+</Typography>
+
+           <Box sx={{ height: 24 }} /> {/* Adds 24px vertical space */}
           
           <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
             {profilesLoading && (

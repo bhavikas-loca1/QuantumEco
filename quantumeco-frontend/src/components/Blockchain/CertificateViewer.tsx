@@ -188,21 +188,31 @@ const CertificateViewer: React.FC = () => {
   const sampleRouteData = generateSampleRouteData();
 
   return (
+    
     <Box sx={{ 
       width: '100vw',
       minHeight: '100vh',
       overflow: 'hidden',
       boxSizing: 'border-box'
     }}>
+      <Box sx={{ height: 24 }} ></Box>
       <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, py: 3 }}>
         {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold', mb: 1 }}>
             🔗 Blockchain Certificate Management
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          {/* <Typography variant="body1" color="text.secondary">
             Manage blockchain certificates, Environmental Trust Tokens, and carbon credits with live demo capabilities
-          </Typography>
+          </Typography> */}
+          <Typography 
+  variant="body1" 
+  color="text.secondary"
+  align="center"
+>
+   Manage blockchain certificates, Environmental Trust Tokens, and carbon credits with live demo capabilities
+</Typography>
+          <Box sx={{ height: 24 }} ></Box>
           
           <Box sx={{ mt: 2, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
             <Chip 
