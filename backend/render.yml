@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: quantumeco-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
+      - key: ENABLE_DEMO_MODE
+        value: true
+      - key: DATABASE_URL
+        value: sqlite:///./quantumeco.db
+      - key: BLOCKCHAIN_URL
+        value: https://quantumeco-blockchain.onrender.com
+      - key: WALMART_STORES_COUNT
+        value: 10500

@@ -1,0 +1,20 @@
+[build]
+  base = "frontend"
+  publish = "dist"
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[context.production.environment]
+  REACT_APP_API_URL = "https://quantumeco.onrender.com"
+  REACT_APP_BLOCKCHAIN_URL = "https://quantumeco-blockchain.onrender.com"
+
+[context.deploy-preview.environment]
+  REACT_APP_API_URL = "https://quantumeco.onrender.com"
+  REACT_APP_BLOCKCHAIN_URL = "https://quantumeco-blockchain.onrender.com"
