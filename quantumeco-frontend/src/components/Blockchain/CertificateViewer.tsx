@@ -77,6 +77,9 @@ const CertificateViewer: React.FC = () => {
           carbon_impact_kg: 44.7,
           sustainability_rating: 91,
           created_at: new Date().toISOString(),
+          token_status: 'active',
+          is_valid: true,
+          owner: 'demo_user_1',
         },
         {
           token_id: 1002,
@@ -85,6 +88,9 @@ const CertificateViewer: React.FC = () => {
           carbon_impact_kg: 35.7,
           sustainability_rating: 88,
           created_at: new Date().toISOString(),
+          token_status: 'active',
+          is_valid: true,
+          owner: 'demo_user_2',
         },
         {
           token_id: 1003,
@@ -93,6 +99,9 @@ const CertificateViewer: React.FC = () => {
           carbon_impact_kg: 52.1,
           sustainability_rating: 95,
           created_at: new Date().toISOString(),
+          token_status: 'active',
+          is_valid: true,
+          owner: 'demo_user_3',
         }
       ]);
 
